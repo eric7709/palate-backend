@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: palate
+  datasource:
+    # URL fixed to prevent database closure issues
+    url: jdbc:h2:mem:palatedb;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# THIS IS THE LOGGING CONFIGURATION
+logging:
+  level:
+    root: INFO
+    # This specifically enables the logs we wrote in your OrderService.
+    # It must match the package name of your OrderService.java.
+    com.app.palate.order: DEBUG
+  pattern:
+    # This defines the format of the output in your terminal
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

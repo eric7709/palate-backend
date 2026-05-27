@@ -1,0 +1,20 @@
+package com.app.palate.order;
+
+import java.util.List;
+import com.app.palate.orderItem.OrderItemDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@RequiredArgsConstructor
+public final class OrderRequestDTO {
+    private final Long tableId;
+    private final Long waiterId;
+    private final Long cashierId;
+    private final OrderStatus status;
+    private final List<OrderItemDTO> items;
+    private final Long customerId;
+    private final String customerName;
+    private final String customerPhoneNumber;
+    private final String customerTitle;
+}
