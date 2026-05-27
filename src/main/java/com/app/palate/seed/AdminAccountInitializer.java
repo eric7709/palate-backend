@@ -32,7 +32,7 @@ public class AdminAccountInitializer {
                                 admin.setLastName("User");
                                 admin.setEmail(adminEmail); // ← same value
                                 admin.setPhoneNumber("+1234567890");
-                                admin.setPassword(passwordEncoder.encode("admin123"));
+                                admin.setPassword(passwordEncoder.encode("staffs123"));
                                 admin.setStatus("ACTIVE");
                                 admin.setRole(Role.ROLE_ADMIN);
                                 admin.setGender(Gender.MALE);
