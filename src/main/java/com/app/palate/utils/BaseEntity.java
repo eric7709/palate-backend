@@ -28,6 +28,6 @@ public abstract class BaseEntity {
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 }
