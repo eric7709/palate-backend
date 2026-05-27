@@ -2,13 +2,15 @@ spring:
   application:
     name: palate
   datasource:
-    # URL fixed to prevent database closure issues
-    url: jdbc:h2:mem:palatedb;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-    username: sa
-    password: 
+    # Use environment variables for security. 
+    # Render will provide the DB_URL, DB_USERNAME, and DB_PASSWORD
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driverClassName: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    # Use the PostgreSQL dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -16,13 +18,11 @@ spring:
       hibernate:
         format_sql: true
 
-# THIS IS THE LOGGING CONFIGURATION
+# LOGGING CONFIGURATION
 logging:
   level:
     root: INFO
-    # This specifically enables the logs we wrote in your OrderService.
-    # It must match the package name of your OrderService.java.
+    # Ensure this matches your project's package structure
     com.app.palate.order: DEBUG
   pattern:
-    # This defines the format of the output in your terminal
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

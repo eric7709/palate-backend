@@ -1,31 +1,15 @@
-# ── Stage 1: Build ────────────────────────────────────────────────────────────
-FROM eclipse-temurin:21-jdk-alpine AS builder
-
+# Change from temurin-17 to temurin-21
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
-
-# Copy Maven wrapper and pom first (better layer caching)
-COPY mvnw .
-COPY .mvn .mvn
 COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Download dependencies separately so this layer is cached
-RUN ./mvnw dependency:go-offline -B
-
-# Copy source and build
-COPY src src
-RUN ./mvnw package -DskipTests -B
-
-# ── Stage 2: Run ──────────────────────────────────────────────────────────────
+# Stage 2: Ensure the runtime also uses Java 21
 FROM eclipse-temurin:21-jre-alpine
-
 WORKDIR /app
-
-# Non-root user for security
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring
-
-COPY --from=builder /app/target/*.jar app.jar
-
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
 ENTRYPOINT ["java", "-jar", "app.jar"]
