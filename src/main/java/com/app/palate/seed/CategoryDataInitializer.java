@@ -51,7 +51,7 @@ public class CategoryDataInitializer {
     );
 
     @Bean
-    @Order(2)
+    @Order(3)
     CommandLineRunner seedCategories() {
         return args -> {
             Set<String> existingNames = new HashSet<>(categoryRepository.findExistingNamesIgnoreCase(

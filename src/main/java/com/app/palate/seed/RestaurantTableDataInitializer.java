@@ -36,7 +36,7 @@ public class RestaurantTableDataInitializer {
     );
 
     @Bean
-    @Order(4)
+    @Order(6)
     CommandLineRunner seedTables() {
         return args -> {
             Set<Integer> existingNumbers = new HashSet<>(

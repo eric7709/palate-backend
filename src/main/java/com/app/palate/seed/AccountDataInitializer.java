@@ -25,7 +25,7 @@ public class AccountDataInitializer {
     );
 
     @Bean
-    @Order(3)
+    @Order(5)
     CommandLineRunner seedAccounts() {
         return args -> {
             List<String> emails = ACCOUNT_SEEDS.stream().map(a -> a.email().toLowerCase()).toList();

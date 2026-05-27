@@ -160,7 +160,7 @@ public class MenuItemSeeder {
             new MenuItemSeed("Espresso", "Strong espresso shot", "Hot Beverages", 600.0));
 
     @Bean
-    @Order(3)
+    @Order(4)
     @Transactional
     CommandLineRunner seedMenuItems() {
         return args -> {

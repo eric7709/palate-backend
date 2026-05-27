@@ -1,4 +1,4 @@
-package com.app.palate.seed; 
+package com.app.palate.seed;
 
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
@@ -21,23 +21,24 @@ public class AdminAccountInitializer {
     @Order(1)
     CommandLineRunner seedAdminAccount() {
         return args -> {
-            accountRepository.findByEmail("admin@cravings.com")
-                .ifPresentOrElse(
-                    account -> System.out.println("ℹ️ Admin account already exists"),
-                    () -> {
-                        Account admin = new Account();
-                        admin.setFirstName("Admin");
-                        admin.setLastName("User");
-                        admin.setEmail("admin@palate.com");
-                        admin.setPhoneNumber("+1234567890");
-                        admin.setPassword(passwordEncoder.encode("admin123"));
-                        admin.setStatus("ACTIVE");
-                        admin.setRole(Role.ROLE_ADMIN);
-                        admin.setGender(Gender.MALE);
-                        accountRepository.save(admin);
-                        System.out.println("✅ Admin account created successfully");
-                    }
-                );
+            final String adminEmail = "admin@palate.com";
+
+            accountRepository.findByEmail(adminEmail)
+                    .ifPresentOrElse(
+                            account -> System.out.println("ℹ️ Admin account already exists"),
+                            () -> {
+                                Account admin = new Account();
+                                admin.setFirstName("Admin");
+                                admin.setLastName("User");
+                                admin.setEmail(adminEmail); // ← same value
+                                admin.setPhoneNumber("+1234567890");
+                                admin.setPassword(passwordEncoder.encode("admin123"));
+                                admin.setStatus("ACTIVE");
+                                admin.setRole(Role.ROLE_ADMIN);
+                                admin.setGender(Gender.MALE);
+                                accountRepository.save(admin);
+                                System.out.println("✅ Admin account created successfully");
+                            });
         };
     }
 }
