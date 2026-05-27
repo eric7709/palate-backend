@@ -33,7 +33,7 @@ public class OrderSpecification {
 
             if (status != null) {
                 predicate = cb.and(predicate,
-                        cb.equal(root.get("orderStatus"), status));
+                        cb.equal(root.get("status"), status));
             }
 
             if (waiterId != null) {
