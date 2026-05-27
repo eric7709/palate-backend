@@ -19,7 +19,7 @@ import lombok.Setter;
 public class OrderResponseDTO {
     private Long id;
     private String invoiceNumber;
-    private OrderStatus orderStatus;
+    private OrderStatus status;
     private Integer quantity;
     private double total;
     private Instant createdAt;
@@ -87,7 +87,7 @@ public class OrderResponseDTO {
 
         dto.setId(order.getId());
         dto.setInvoiceNumber(order.getInvoiceNumber());
-        dto.setOrderStatus(order.getStatus());
+        dto.setStatus(order.getStatus());
         dto.setQuantity(order.getQuantity());
         dto.setTotal(order.getTotal());
         dto.setCreatedAt(order.getCreatedAt());

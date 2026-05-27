@@ -19,11 +19,32 @@ spring:
         javax.persistence.schema-generation.create-source: metadata
         format_sql: true
 
-# LOGGING CONFIGURATION
-logging:
-  level:
-    root: INFO
-    # Ensure this matches your project's package structure
-    com.app.palate.order: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+
+# spring:
+#   application:
+#     name: palate
+#   datasource:
+#     url: jdbc:h2:mem:palatedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#     username: sa
+#     password: 
+#     driverClassName: org.h2.Driver
+#   h2:
+#     console:
+#       enabled: true
+#       path: /h2-console
+#   jpa:
+#     database-platform: org.hibernate.dialect.H2Dialect
+#     hibernate:
+#       ddl-auto: create-drop
+#     show-sql: true
+#     properties:
+#       hibernate:
+#         format_sql: true
+
+# logging:
+#   level:
+#     root: INFO
+#     com.app.palate.order: DEBUG
+#   pattern:
+#     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
