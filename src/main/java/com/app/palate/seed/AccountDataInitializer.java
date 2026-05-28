@@ -42,7 +42,7 @@ public class AccountDataInitializer {
                         account.setRole(seed.role());
                         account.setGender(seed.gender()); // Essential: set gender
                         account.setStatus("ACTIVE");
-                        account.setPassword(passwordEncoder.encode("admin123"));
+                        account.setPassword(passwordEncoder.encode("staffs123"));
                         return account;
                     })
                     .toList();

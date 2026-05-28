@@ -59,7 +59,7 @@ public class MenuItemController {
         return menuItemsPage.map(menuItemMapper::toResponse);
     }
 
-    @GetMapping("/unavailable")
+    @PostMapping("/unavailable")
     @ResponseStatus(HttpStatus.OK)
     public List<Long> getUnavailbleMenuItems(@RequestBody List<Long> request) {
         return menuItemService.getUnavailableMenuItems(request);

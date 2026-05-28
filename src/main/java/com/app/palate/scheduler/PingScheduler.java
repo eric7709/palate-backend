@@ -1,0 +1,26 @@
+package com.app.palate.scheduler;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+@Component
+public class PingScheduler {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Scheduled(fixedRate = 10000)
+    public void ping() {
+        try {
+            restTemplate.getForObject(
+                "http://localhost:8080/api/palate/ping",
+                String.class
+            );
+
+        } catch (Exception e) {
+
+            System.out.println("Ping failed");
+
+        }
+    }
+}

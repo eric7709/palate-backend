@@ -26,8 +26,10 @@ public class MenuItemService {
     private final EntityResolver entityResolver;
     private final CategoryRepository categoryRepository;
     private final MenuItemRepository menuItemRepository;
-
+    private final MenuItemEvents menuItemEvents; // 1. Inject the events component
+    private final MenuItemMapper menuItemMapper;
     // CREATE
+
     public MenuItem createMenuItem(MenuItemRequestDTO request) {
         ValidationUtils.requireNonNull(request, "Request body");
 
@@ -55,6 +57,8 @@ public class MenuItemService {
         menuItem.setStatus(status);
         menuItem.setImageUrl(imageUrl);
 
+        MenuItemResponseDTO response = menuItemMapper.toResponse(menuItem);
+        menuItemEvents.broadcastCreated(response);
         return menuItemRepository.save(menuItem);
     }
 
@@ -142,7 +146,8 @@ public class MenuItemService {
         if (request.status() != null) {
             menuItem.setStatus(request.status());
         }
-
+        MenuItemResponseDTO response = menuItemMapper.toResponse(menuItem);
+        menuItemEvents.broadcastCreated(response);
         return menuItemRepository.save(menuItem);
     }
 
