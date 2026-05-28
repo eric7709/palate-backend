@@ -11,7 +11,7 @@ public class Controller {
     @GetMapping
     public String ping(){
 
-        System.out.println("Backend Running");
+        System.out.println("Backend Running o");
 
         return "pong";
     }
