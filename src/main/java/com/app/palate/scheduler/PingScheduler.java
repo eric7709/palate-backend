@@ -13,7 +13,7 @@ public class PingScheduler {
     public void ping() {
         try {
             restTemplate.getForObject(
-                "https://palate-backend.onrender.com",
+                "https://palate-backend.onrender.com/api/palate/ping",
                 String.class
             );
 
