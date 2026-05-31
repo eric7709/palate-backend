@@ -1,7 +1,6 @@
 package com.app.palate.dashboard;
 
 import com.app.palate.dashboard.DashboardChartStats.*;
-import com.app.palate.dashboard.DashboardChartRepository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
