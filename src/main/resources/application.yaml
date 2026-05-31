@@ -2,4 +2,4 @@ spring:
   application:
     name: palate
   profiles:
-    active: dev  # change to prod when deploying, or override via env var
+    active: prod 
