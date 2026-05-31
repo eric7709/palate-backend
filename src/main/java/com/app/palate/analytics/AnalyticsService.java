@@ -1,84 +1,155 @@
 package com.app.palate.analytics;
 
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.app.palate.analytics.dto.*;
+import com.app.palate.analytics.projections.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import com.app.palate.exceptions.BadRequestException;
-import com.app.palate.order.OrderRepository;
-import com.app.palate.utils.ValidationUtils;
-
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AnalyticsService {
-    private final OrderRepository orderRepository;
 
-    public Map<String, Object> getBusinessIntelligenceReport(String startDate, String endDate) {
-        ValidationUtils.requireNonBlank(startDate, "Start date");
-        ValidationUtils.requireNonBlank(endDate, "End date");
+    private final AnalyticsRepository repo;
 
-        try {
-            // Start of the day (00:00:00)
-            Instant start = Instant.parse(startDate.trim() + "T00:00:00Z");
-            // End of the day (23:59:59)
-            Instant end = Instant.parse(endDate.trim() + "T23:59:59Z");
+    // ── Revenue ──────────────────────────────────────────────────────────────
 
-            if (end.isBefore(start)) {
-                throw new BadRequestException("End date cannot be earlier than start date");
-            }
-
-            return getFullBusinessIntelligence(start, end);
-
-        } catch (DateTimeParseException e) {
-            throw new BadRequestException("Invalid date format. Expected format: YYYY-MM-DD");
-        }
+    public RevenueSummaryDTO getRevenueSummary(Instant start, Instant end) {
+        RevenueSummaryProjection p = repo.getRevenueSummary(start, end);
+        return RevenueSummaryDTO.builder()
+                .totalRevenue(p.getTotalRevenue())
+                .avgOrderValue(p.getAvgOrderValue())
+                .totalOrders(p.getTotalOrders())
+                .build();
     }
 
-    private Map<String, Object> getFullBusinessIntelligence(Instant start, Instant end) {
-        Map<String, Object> db = new LinkedHashMap<>();
-
-        // 1. Executive Summary
-        Object[] totalsResult = orderRepository.getGlobalTotals(start, end);
-        Object[] totals = (totalsResult != null && totalsResult.length > 0) ? (Object[]) totalsResult[0] : new Object[]{0, 0.0};
-        
-        db.put("summary", Map.of(
-            "totalOrders", totals[0] != null ? totals[0] : 0,
-            "totalRevenue", totals[1] != null ? totals[1] : 0.0
-        ));
-
-        // 2. Map all lists using universal keys: label, quantity, revenue
-        db.put("shifts", mapData(orderRepository.getSalesByShift(start, end)));
-        db.put("days", mapData(orderRepository.getSalesByDayOfWeek(start, end)));
-        db.put("menuItems", mapData(orderRepository.getMenuItemStats(start, end)));
-        db.put("categories", mapData(orderRepository.getCategoryStats(start, end)));
-        db.put("waiters", mapData(orderRepository.getWaiterStats(start, end)));
-        db.put("tables", mapData(orderRepository.getTableStats(start, end)));
-        db.put("customers", mapData(orderRepository.getCustomerStats(start, end)));
-
-        return db;
+    public List<RevenueOverTimeDTO> getRevenueOverTime(Instant start, Instant end) {
+        String granularity = resolveGranularity(start, end);
+        return repo.getRevenueOverTime(granularity, start, end).stream()
+                .map(p -> RevenueOverTimeDTO.builder()
+                        .period(p.getPeriod())
+                        .revenue(p.getRevenue())
+                        .orderCount(p.getOrderCount())
+                        .build())
+                .toList();
     }
 
-    /**
-     * Standardizes all Object[] lists into a consistent List of Maps for the frontend.
-     */
-    private List<Map<String, Object>> mapData(List<Object[]> list) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        if (list == null) return result;
-        
-        for (Object[] row : list) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("label", row[0]);    // Name, Shift, or Day
-            m.put("quantity", row[1]); // Count or Quantity
-            m.put("revenue", row[2]);  // Total Revenue
-            result.add(m);
-        }
-        return result;
+    // ── Orders ───────────────────────────────────────────────────────────────
+
+    public List<OrdersByStatusDTO> getOrdersByStatus(Instant start, Instant end) {
+        return repo.countByStatus(start, end).stream()
+                .map(p -> OrdersByStatusDTO.builder()
+                        .status(p.getStatus())
+                        .count(p.getCount())
+                        .build())
+                .toList();
+    }
+
+    public List<PeakHourProjection> getPeakHours(Instant start, Instant end) {
+        return repo.getPeakHours(start, end);
+    }
+
+    // ── Menu ─────────────────────────────────────────────────────────────────
+
+    public List<MenuItemPerformanceDTO> getTopItems(Instant start, Instant end, int limit) {
+        return repo.getTopItems(start, end, PageRequest.of(0, limit)).stream()
+                .map(p -> MenuItemPerformanceDTO.builder()
+                        .itemId(p.getItemId())
+                        .itemName(p.getItemName())
+                        .totalQuantity(p.getTotalQuantity())
+                        .totalRevenue(p.getTotalRevenue())
+                        .build())
+                .toList();
+    }
+
+    public List<MenuItemPerformanceDTO> getLeastItems(Instant start, Instant end, int limit) {
+        return repo.getTopItems(start, end, PageRequest.of(0, Integer.MAX_VALUE)).stream()
+                .sorted(Comparator.comparingLong(MenuItemPerformanceProjection::getTotalQuantity))
+                .limit(limit)
+                .map(p -> MenuItemPerformanceDTO.builder()
+                        .itemId(p.getItemId())
+                        .itemName(p.getItemName())
+                        .totalQuantity(p.getTotalQuantity())
+                        .totalRevenue(p.getTotalRevenue())
+                        .build())
+                .toList();
+    }
+
+    public List<CancelledItemProjection> getMostCancelledItems(Instant start, Instant end, int limit) {
+        return repo.getMostCancelledItems(start, end, PageRequest.of(0, limit));
+    }
+
+    // ── Customers ────────────────────────────────────────────────────────────
+
+    public CustomerSummaryDTO getCustomerSummary(Instant start, Instant end) {
+        CustomerSummaryProjection p = repo.getCustomerSummary(start, end);
+        return CustomerSummaryDTO.builder()
+                .newCustomers(p.getNewCustomers())
+                .returningCustomers(p.getReturningCustomers())
+                .build();
+    }
+
+    public List<TopCustomerDTO> getTopCustomers(Instant start, Instant end, int limit) {
+        return repo.getTopCustomers(start, end, PageRequest.of(0, limit)).stream()
+                .map(p -> TopCustomerDTO.builder()
+                        .customerId(p.getCustomerId())
+                        .customerName(p.getCustomerName())
+                        .orderCount(p.getOrderCount())
+                        .totalSpent(p.getTotalSpent())
+                        .build())
+                .toList();
+    }
+
+    // ── Staff ────────────────────────────────────────────────────────────────
+
+    public List<StaffPerformanceDTO> getOrdersPerWaiter(Instant start, Instant end) {
+        return repo.getOrdersPerWaiter(start, end).stream()
+                .map(p -> StaffPerformanceDTO.builder()
+                        .staffId(p.getStaffId())
+                        .staffName(p.getStaffName())
+                        .orderCount(p.getOrderCount())
+                        .totalValue(p.getTotalValue())
+                        .build())
+                .toList();
+    }
+
+    public List<StaffPerformanceDTO> getRevenuePerCashier(Instant start, Instant end) {
+        return repo.getRevenuePerCashier(start, end).stream()
+                .map(p -> StaffPerformanceDTO.builder()
+                        .staffId(p.getStaffId())
+                        .staffName(p.getStaffName())
+                        .orderCount(p.getOrderCount())
+                        .totalValue(p.getTotalValue())
+                        .build())
+                .toList();
+    }
+
+    // ── Tables ───────────────────────────────────────────────────────────────
+
+    public List<TableActivityDTO> getTableActivity(Instant start, Instant end) {
+        return repo.getTableActivity(start, end).stream()
+                .map(p -> TableActivityDTO.builder()
+                        .tableId(p.getTableId())
+                        .tableName(p.getTableName())
+                        .tableNumber(p.getTableNumber())
+                        .orderCount(p.getOrderCount())
+                        .totalRevenue(p.getTotalRevenue())
+                        .build())
+                .toList();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private String resolveGranularity(Instant start, Instant end) {
+        long days = ChronoUnit.DAYS.between(start, end);
+        if (days <= 1)  return "hour";
+        if (days <= 31) return "day";
+        if (days <= 90) return "week";
+        return "month";
     }
 }
