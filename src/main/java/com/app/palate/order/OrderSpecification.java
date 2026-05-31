@@ -1,6 +1,9 @@
 package com.app.palate.order;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.jpa.domain.Specification;
 
 import com.app.palate.auth.Account;
@@ -23,68 +26,53 @@ public class OrderSpecification {
             Long tableId,
             Double minTotal,
             Double maxTotal,
-            Instant startDate,
+            Instant startDate,  
             Instant endDate,
             String search) {
 
         return (root, query, cb) -> {
 
-            Predicate predicate = cb.conjunction();
+            // 1. Create the list instead of a single predicate variable
+            List <Predicate> predicates = new ArrayList<>();
 
             if (status != null) {
-                predicate = cb.and(predicate,
-                        cb.equal(root.get("status"), status));
+                predicates.add(cb.equal(root.get("status"), status));
             }
 
             if (waiterId != null) {
-                predicate = cb.and(predicate,
-                        cb.equal(root.get("waiter").get("id"), waiterId));
+                predicates.add(cb.equal(root.get("waiter").get("id"), waiterId));
             }
 
             if (cashierId != null) {
-                predicate = cb.and(predicate,
-                        cb.equal(root.get("cashier").get("id"), cashierId));
+                predicates.add(cb.equal(root.get("cashier").get("id"), cashierId));
             }
 
             if (tableId != null) {
-                predicate = cb.and(predicate,
-                        cb.equal(root.get("table").get("id"), tableId));
+                predicates.add(cb.equal(root.get("table").get("id"), tableId));
             }
 
             if (minTotal != null) {
-                predicate = cb.and(predicate,
-                        cb.greaterThanOrEqualTo(root.get("total"), minTotal));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("total"), minTotal));
             }
 
             if (maxTotal != null) {
-                predicate = cb.and(predicate,
-                        cb.lessThanOrEqualTo(root.get("total"), maxTotal));
+                predicates.add(cb.lessThanOrEqualTo(root.get("total"), maxTotal));
             }
 
-            // FIX 1: Use half-open interval [startDate, endDate) for date range.
-            // endDate is already set to next-day midnight in the service layer,
-            // so we use lessThan (exclusive) instead of lessThanOrEqualTo.
             if (startDate != null) {
-                predicate = cb.and(predicate,
-                        cb.greaterThanOrEqualTo(root.get("createdAt"), startDate));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), startDate));
             }
 
             if (endDate != null) {
-                predicate = cb.and(predicate,
-                        cb.lessThan(root.get("createdAt"), endDate));
+                predicates.add(cb.lessThan(root.get("createdAt"), endDate));
             }
 
-            // FIX 2: Search uses subqueries to avoid cross-join duplicates caused
-            // by multiple LEFT JOINs on collection associations (items → menuItem).
-            // This eliminates the need for query.distinct(true) which kills pagination.
             if (search != null && !search.isBlank()) {
                 String term = "%" + search.toLowerCase() + "%";
 
                 Predicate invoiceLike = cb.like(
                         cb.lower(root.get("invoiceNumber")), term);
 
-                // FIX 3: customer join changed from INNER to LEFT so orders
-                // without a customer are not silently excluded.
                 Join<Order, Object> customerJoin = root.join("customer", JoinType.LEFT);
                 Predicate customerLike = cb.like(
                         cb.lower(customerJoin.get("name")), term);
@@ -107,14 +95,9 @@ public class OrderSpecification {
                 Predicate tableNameLike = cb.like(
                         cb.lower(tableJoin.get("tableName")), term);
                 Predicate tableNumberLike = cb.like(
-                        cb.lower(tableJoin.get("tableNumber").as(String.class)), term);
+                        cb.lower(tableJoin.get("tab leNumber").as(String.class)), term);
                 Predicate tableLike = cb.or(tableNameLike, tableNumberLike);
 
-                // FIX 4: Use EXISTS subquery for the collection join (items → menuItem)
-                // instead of a direct LEFT JOIN. A direct join on a @OneToMany produces
-                // one row per item, inflating the result set and breaking pagination
-                // even with DISTINCT (SQL DISTINCT + ORDER BY requires all sorted columns
-                // in the SELECT, which Spring Data can't guarantee on a Page query).
                 Subquery<Long> itemSubquery = query.subquery(Long.class);
                 Root<Order> subRoot = itemSubquery.from(Order.class);
                 Join<Order, OrderItem> subItems = subRoot.join("items", JoinType.LEFT);
@@ -125,19 +108,18 @@ public class OrderSpecification {
                                 cb.like(cb.lower(subMenuItem.get("name")), term));
                 Predicate menuItemLike = cb.exists(itemSubquery);
 
-                predicate = cb.and(predicate, cb.or(
+                // 2. Add the entire OR search block as one single predicate into the list
+                predicates.add(cb.or(
                         invoiceLike,
                         customerLike,
                         waiterLike,
                         cashierLike,
                         tableLike,
                         menuItemLike));
-
-                // No longer needed — subquery eliminates duplicates at the source.
-                // query.distinct(true) removed intentionally.
             }
 
-            return predicate;
+            // 3. Combine everything at once at the end
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

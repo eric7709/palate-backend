@@ -29,14 +29,14 @@ public class CreateOrder {
 
     public OrderResponseDTO createOrder(OrderRequestDTO request, OrderEvents orderEvents) {
         validateRequest(request);
-        
+
         RestaurantTable table = entityResolver.resolveRestaurantTable(request.getTableId());
         Account waiter = entityResolver.resolveEmployee(request.getWaiterId());
         Account cashier = entityResolver.resolveEmployee(request.getCashierId());
-        
+
         // Strict resolution: will throw Exception if ID provided is invalid
         Customer customer = resolveCustomer(request, customerRepository);
-        
+
         Order order = new Order();
         order.setStatus(OrderStatus.PENDING);
         order.setTable(table);
@@ -44,40 +44,40 @@ public class CreateOrder {
         order.setCustomer(customer);
         order.setCashier(cashier);
         order.setInvoiceNumber(generateInvoiceNumber());
-        
+
         List<OrderItem> items = new ArrayList<>();
         double total = 0.0;
         int totalQuantity = 0;
-        
+
         for (OrderItemDTO itemDTO : request.getItems()) {
             Long menuItemId = itemDTO.getMenuItemId();
             if (menuItemId == null)
                 throw new BadRequestException("Menu item Id is required");
-            
+
             MenuItem menuItem = entityResolver.resolveMenuItem(menuItemId);
             if (MenuItemStatus.UNAVAILABLE.equals(menuItem.getStatus())) {
                 throw new BadRequestException("Sorry, " + menuItem.getName() + " is unavailable");
             }
-            
+
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
             orderItem.setQuantity(itemDTO.getQuantity());
             orderItem.setPrice(menuItem.getPrice());
             orderItem.setTakeOut(itemDTO.isTakeOut());
-            
+
             items.add(orderItem);
             total += menuItem.getPrice() * itemDTO.getQuantity();
             totalQuantity += itemDTO.getQuantity();
         }
-        
+
         order.setItems(items);
         order.setTotal(total);
         order.setQuantity(totalQuantity);
-        
+
         Order savedOrder = orderRepository.save(order);
         OrderResponseDTO response = OrderResponseDTO.mapToResponse(savedOrder);
-        
+
         orderEvents.broadcastCreated(response);
         return response;
     }
@@ -98,15 +98,28 @@ public class CreateOrder {
     private static Customer resolveCustomer(
             OrderRequestDTO request,
             CustomerRepository customerRepository) {
-        
 
-        // 2. Fallback to Name/Title creation
-        if (request.getCustomerName() == null || request.getCustomerName().isBlank() || 
-            request.getCustomerTitle() == null || request.getCustomerTitle().isBlank()) {
+        // 1. If customer ID is provided, try to find and update that customer
+        if (request.getCustomerId() != null) {
+            Customer existing = customerRepository.findById(request.getCustomerId()).orElse(null);
+            if (existing != null) {
+                if (request.getCustomerName() != null && !request.getCustomerName().isBlank())
+                    existing.setName(request.getCustomerName());
+                if (request.getCustomerTitle() != null && !request.getCustomerTitle().isBlank())
+                    existing.setTitle(request.getCustomerTitle());
+                if (request.getCustomerPhoneNumber() != null && !request.getCustomerPhoneNumber().isBlank())
+                    existing.setPhoneNumber(request.getCustomerPhoneNumber());
+                return customerRepository.save(existing);
+            }
+        }
+
+        // 2. Require name and title before going further
+        if (request.getCustomerName() == null || request.getCustomerName().isBlank() ||
+                request.getCustomerTitle() == null || request.getCustomerTitle().isBlank()) {
             throw new BadRequestException("Customer name and title are required");
         }
 
-        // 3. Check for existing customer by phone
+        // 3. Check for existing customer by phone and update
         String phone = request.getCustomerPhoneNumber();
         if (phone != null && !phone.isBlank()) {
             Customer byPhone = customerRepository.findByPhoneNumber(phone);
@@ -127,7 +140,6 @@ public class CreateOrder {
         return customerRepository.save(newCustomer);
     }
 
-    /* ======================= UTILS ======================= */
     private static String generateInvoiceNumber() {
         return "ORD-"
                 + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)

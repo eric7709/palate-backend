@@ -136,7 +136,6 @@ public class OrderService {
     // ==========================
     public List<Order> fetchCustomerOrdersToday(Long customerId) {
         ValidationUtils.requireNonNull(customerId, "Customer ID");
-
         Instant start = DateTimeUtils.startOfToday();
         Instant end = DateTimeUtils.endOfToday();
         return orderRepository.fetchCustomerOrdersToday(customerId, start, end);

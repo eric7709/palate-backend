@@ -77,7 +77,6 @@ public class MenuItemController {
         MenuItem menuItem = menuItemService.updateMenuItem(id, request);
         // 4. Update to instance call
         MenuItemResponseDTO response = menuItemMapper.toResponse(menuItem);
-
         menuItemEvents.broadcastUpdated(response);
         return response;
     }
