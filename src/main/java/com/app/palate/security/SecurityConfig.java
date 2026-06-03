@@ -39,6 +39,7 @@ public class SecurityConfig {
                         // Public READ
                         .requestMatchers(HttpMethod.GET, "/api/palate/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/palate/menu-items/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/palate/menu-items/unavailable").permitAll() // ← before admin rules
                         .requestMatchers(HttpMethod.GET, "/api/palate/tables/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/palate/orders/**").permitAll()
                         // WebSocket

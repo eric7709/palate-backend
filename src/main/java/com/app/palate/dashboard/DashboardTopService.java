@@ -36,14 +36,17 @@ public class DashboardTopService {
         List<Object[]> prev = topRepository.findTopTables(prevFrom, prevTo, limit);
 
         Map<Long, Double> prevRevenueById = toRevenueMap(prev, 3);
-        long maxOrders = curr.isEmpty() ? 1 : toLong(curr.get(0)[4]);
+
+        double totalRevenue = curr.stream()
+            .mapToDouble(row -> toDouble(row[3]))
+            .sum();
 
         return curr.stream().map(row -> {
-            Long   id          = toLongId(row[0]);
-            double revenue     = toDouble(row[3]);
-            long   orderCount  = toLong(row[4]);
-            double utilization = maxOrders == 0 ? 0 : (orderCount * 100.0) / maxOrders;
-            double prevRev     = prevRevenueById.getOrDefault(id, 0.0);
+            Long   id           = toLongId(row[0]);
+            double revenue      = toDouble(row[3]);
+            long   orderCount   = toLong(row[4]);
+            double sharePercent = totalRevenue == 0 ? 0 : (revenue / totalRevenue) * 100.0;
+            double prevRev      = prevRevenueById.getOrDefault(id, 0.0);
 
             return new TopTable(
                 id,
@@ -51,7 +54,7 @@ public class DashboardTopService {
                 ((Number) row[2]).intValue(),
                 revenue,
                 orderCount,
-                utilization,
+                sharePercent,
                 growth(prevRev, revenue)
             );
         }).toList();
@@ -65,16 +68,22 @@ public class DashboardTopService {
 
         Map<Long, Double> prevRevenueById = toRevenueMap(prev, 2);
 
+        double totalRevenue = curr.stream()
+            .mapToDouble(row -> toDouble(row[2]))
+            .sum();
+
         return curr.stream().map(row -> {
-            Long   id      = toLongId(row[0]);
-            double revenue = toDouble(row[2]);
-            double prevRev = prevRevenueById.getOrDefault(id, 0.0);
+            Long   id           = toLongId(row[0]);
+            double revenue      = toDouble(row[2]);
+            double sharePercent = totalRevenue == 0 ? 0 : (revenue / totalRevenue) * 100.0;
+            double prevRev      = prevRevenueById.getOrDefault(id, 0.0);
 
             return new TopCategory(
                 id,
                 (String) row[1],
                 revenue,
                 toLong(row[3]),
+                sharePercent,
                 growth(prevRev, revenue)
             );
         }).toList();
@@ -88,10 +97,15 @@ public class DashboardTopService {
 
         Map<Long, Double> prevRevenueById = toRevenueMap(prev, 3);
 
+        double totalRevenue = curr.stream()
+            .mapToDouble(row -> toDouble(row[3]))
+            .sum();
+
         return curr.stream().map(row -> {
-            Long   id      = toLongId(row[0]);
-            double revenue = toDouble(row[3]);
-            double prevRev = prevRevenueById.getOrDefault(id, 0.0);
+            Long   id           = toLongId(row[0]);
+            double revenue      = toDouble(row[3]);
+            double sharePercent = totalRevenue == 0 ? 0 : (revenue / totalRevenue) * 100.0;
+            double prevRev      = prevRevenueById.getOrDefault(id, 0.0);
 
             return new TopItem(
                 id,
@@ -99,6 +113,7 @@ public class DashboardTopService {
                 (String) row[2],
                 revenue,
                 toLong(row[4]),
+                sharePercent,
                 growth(prevRev, revenue)
             );
         }).toList();
@@ -112,16 +127,22 @@ public class DashboardTopService {
 
         Map<Long, Double> prevRevenueById = toRevenueMap(prev, 2);
 
+        double totalRevenue = curr.stream()
+            .mapToDouble(row -> toDouble(row[2]))
+            .sum();
+
         return curr.stream().map(row -> {
-            Long   id      = toLongId(row[0]);
-            double revenue = toDouble(row[2]);
-            double prevRev = prevRevenueById.getOrDefault(id, 0.0);
+            Long   id           = toLongId(row[0]);
+            double revenue      = toDouble(row[2]);
+            double sharePercent = totalRevenue == 0 ? 0 : (revenue / totalRevenue) * 100.0;
+            double prevRev      = prevRevenueById.getOrDefault(id, 0.0);
 
             return new TopWaiter(
                 id,
                 (String) row[1],
                 revenue,
                 toLong(row[3]),
+                sharePercent,
                 growth(prevRev, revenue)
             );
         }).toList();
