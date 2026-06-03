@@ -2,4 +2,8 @@ spring:
   application:
     name: palate
   profiles:
-    active: prod 
+    active: dev
+
+jwt:
+  access-secret: w4QhK7fZ8v+2H1j0p5S6G3bV9nLxTqY4RkF0uJcM1sA=
+  refresh-secret: v7NqX1hP9dKzR4tB6sY3F8wL2mJ5cV0nHqT9eR1oGkM=

@@ -167,9 +167,11 @@ public class OrderService {
                 preparing++;
             if (order.getStatus().equals(OrderStatus.COMPLETED))
                 completed++;
-            if (order.getStatus().equals(OrderStatus.PAID))
+            if (order.getStatus().equals(OrderStatus.PAID)) {
                 paid++;
-            else
+                paidTotal += order.getTotal();
+            }
+            if (order.getStatus().equals(OrderStatus.CANCELLED))
                 cancelled++;
         }
         return new OrderStatusCounts(pending, preparing, completed, paid, cancelled, paidTotal);

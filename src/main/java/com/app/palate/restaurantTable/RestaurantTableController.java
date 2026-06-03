@@ -46,7 +46,7 @@ public class RestaurantTableController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
+            @RequestParam(defaultValue = "desc") String sortDirection) {
         return restaurantTableService.getAllTables(search, status, page, size, sortBy, sortDirection)
                 .map(tableResponseMapper::mapToResponse);
     }

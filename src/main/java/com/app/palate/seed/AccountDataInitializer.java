@@ -2,6 +2,7 @@ package com.app.palate.seed;
 
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
+import com.app.palate.auth.AccountStatus;
 import com.app.palate.auth.Gender;
 import com.app.palate.auth.Role;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class AccountDataInitializer {
                         account.setPhoneNumber(seed.phone());
                         account.setRole(seed.role());
                         account.setGender(seed.gender()); // Essential: set gender
-                        account.setStatus("ACTIVE");
+                        account.setStatus(AccountStatus.ACTIVE); // Essential: set status
                         account.setPassword(passwordEncoder.encode("staff123"));
                         return account;
                     })

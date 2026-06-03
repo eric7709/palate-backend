@@ -40,14 +40,14 @@ public class OrderController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
-            
+
         OrderFilterDTO filter = new OrderFilterDTO(
                 status, waiterId, cashierId, tableId, search,
-                minTotal, maxTotal, startDate, endDate, page, size, sortBy, sortDirection
-        );
+                minTotal, maxTotal, startDate, endDate, page, size, sortBy, sortDirection);
         return orderService.getAllOrders(filter);
     }
 
+    
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public OrderResponseDTO updateOrderStatus(

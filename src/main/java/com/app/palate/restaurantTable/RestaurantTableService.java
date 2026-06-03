@@ -17,6 +17,8 @@ import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.tableAllocation.TableAllocationService;
 import com.app.palate.utils.ValidationUtils;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -80,9 +82,9 @@ public class RestaurantTableService {
     }
 
     public List<RestaurantTable> getTablesByAccount(Long waiterId, Long cashierId) {
-        if(waiterId != null)
+        if (waiterId != null)
             return restaurantTableRepository.findByWaiterId(waiterId);
-        if(cashierId != null)
+        if (cashierId != null)
             return restaurantTableRepository.findByCashierId(cashierId);
         else
             return null;
@@ -96,20 +98,46 @@ public class RestaurantTableService {
             String sortBy,
             String sortDirection) {
 
-        Sort sort = sortDirection.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Sort sort = sortDirection.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<RestaurantTable> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (search != null && !search.trim().isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("tableNumber")), "%" + search.toLowerCase() + "%"));
-            }
-            if (status != null && !status.isEmpty()) {
-                predicates.add(cb.equal(root.get("status"), status));
+                String pattern = "%" + search.toLowerCase() + "%";
+
+                Join<RestaurantTable, Account> waiterJoin = root.join("waiter", JoinType.LEFT);
+                Join<RestaurantTable, Account> cashierJoin = root.join("cashier", JoinType.LEFT);
+
+                Predicate byTableName = cb.like(cb.lower(root.get("tableName")), pattern);
+                Predicate byTableNumber = cb.like(cb.toString(root.get("tableNumber")), pattern);
+
+                Predicate byWaiterFirst = cb.like(cb.lower(waiterJoin.get("firstName")), pattern);
+                Predicate byWaiterLast = cb.like(cb.lower(waiterJoin.get("lastName")), pattern);
+
+                Predicate byCashierFirst = cb.like(cb.lower(cashierJoin.get("firstName")), pattern);
+                Predicate byCashierLast = cb.like(cb.lower(cashierJoin.get("lastName")), pattern);
+
+                predicates.add(cb.or(
+                        byTableName, byTableNumber,
+                        byWaiterFirst, byWaiterLast,
+                        byCashierFirst, byCashierLast));
+
+                query.distinct(true);
             }
 
-            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            if (status != null && !status.isEmpty()) {
+                predicates.add(cb.equal(
+                        root.get("status"),
+                        RestaurantTableStatus.valueOf(status)));
+            }
+
+            return predicates.isEmpty()
+                    ? cb.conjunction()
+                    : cb.and(predicates.toArray(new Predicate[0]));
         };
 
         return restaurantTableRepository.findAll(spec, pageable);

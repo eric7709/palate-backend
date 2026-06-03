@@ -2,6 +2,7 @@ package com.app.palate.seed;
 
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
+import com.app.palate.auth.AccountStatus;
 import com.app.palate.auth.Gender;
 import com.app.palate.auth.Role;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class AdminAccountInitializer {
                                 admin.setEmail(adminEmail); // ← same value
                                 admin.setPhoneNumber("+1234567890");
                                 admin.setPassword(passwordEncoder.encode("admin123"));
-                                admin.setStatus("ACTIVE");
+                                admin.setStatus(AccountStatus.ACTIVE);
                                 admin.setRole(Role.ROLE_ADMIN);
                                 admin.setGender(Gender.MALE);
                                 accountRepository.save(admin);

@@ -3,53 +3,66 @@ package com.app.palate.dashboard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
 
-    private final DashboardOrderRepository    orderRepository;
-    private final DashboardCustomerRepository customerRepository;
+    private final DashboardOrderRepository orderRepository;
+    private static final ZoneOffset WAT = ZoneOffset.of("+01:00");
 
-    public DashboardStats getStats(Instant from, Instant to) {
-        // Shift back by the same duration to get the comparison window
-        // e.g. Nov 1–30 → Oct 2–Nov 1 (same length, directly before)
-        Duration period  = Duration.between(from, to);
-        Instant  prevFrom = from.minus(period);
-        Instant  prevTo   = from;
+    public DashboardDTO getDashboardData() {
+        Instant now = Instant.now();
+        Instant startOfDay = LocalDate.now(WAT).atStartOfDay().toInstant(WAT);
+        Instant endOfDay = startOfDay.plus(1, ChronoUnit.DAYS);
+        Instant start30DaysAgo = now.minus(30, ChronoUnit.DAYS);
 
-        // Revenue
-        double currRevenue = orderRepository.sumRevenueBetween(from, to);
-        double prevRevenue = orderRepository.sumRevenueBetween(prevFrom, prevTo);
-
-        // Orders
-        long currOrders = orderRepository.countOrdersBetween(from, to);
-        long prevOrders = orderRepository.countOrdersBetween(prevFrom, prevTo);
-
-        // Customers
-        long currCustomers = customerRepository.countCustomersBetween(from, to);
-        long prevCustomers = customerRepository.countCustomersBetween(prevFrom, prevTo);
-
-        // Avg order value
-        double currAvg = currOrders == 0 ? 0 : currRevenue / currOrders;
-        double prevAvg = prevOrders == 0 ? 0 : prevRevenue / prevOrders;
-
-        return new DashboardStats(
-            currRevenue,   growth(prevRevenue,   currRevenue),
-            currOrders,    growth(prevOrders,    currOrders),
-            currCustomers, growth(prevCustomers, currCustomers),
-            currAvg,       growth(prevAvg,       currAvg)
-        );
+        return new DashboardDTO(
+                getPaidOrdersVolumeByHour(startOfDay, endOfDay),
+                getAvgOrderValueByTable(start30DaysAgo, now),
+                orderRepository.getTotalOrderVolume(startOfDay, endOfDay),
+                getPeakHourToday(startOfDay, endOfDay));
     }
 
-    private double growth(double prev, double curr) {
-        if (prev == 0) return 0;
-        return ((curr - prev) / prev) * 100.0;
+    private List<OrderHourDTO> getPaidOrdersVolumeByHour(Instant start, Instant end) {
+        List<Object[]> results = orderRepository.getPaidOrdersVolumeByHour(start, end);
+        List<OrderHourDTO> hourly = new ArrayList<>();
+
+        for (int i = 0; i < 24; i++)
+            hourly.add(new OrderHourDTO(String.format("%02d:00", i), 0L));
+
+        for (Object[] row : results) {
+            int hour = ((Number) row[0]).intValue();
+            long count = ((Number) row[1]).longValue();
+            if (hour >= 0 && hour < 24) {
+                hourly.set(hour, new OrderHourDTO(String.format("%02d:00", hour), count));
+            }
+        }
+        return hourly;
     }
 
-    private double growth(long prev, long curr) {
-        return growth((double) prev, (double) curr);
+    private List<TableAvgDTO> getAvgOrderValueByTable(Instant start, Instant end) {
+        return orderRepository.getAvgOrderValueByTable(start, end).stream()
+                .map(row -> new TableAvgDTO((String) row[0], ((Number) row[1]).doubleValue()))
+                .collect(Collectors.toList());
     }
+
+    private PeakHourDTO getPeakHourToday(Instant start, Instant end) {
+        List<Object[]> results = orderRepository.getPeakOrderHour(start, end);
+        if (results.isEmpty())
+            return new PeakHourDTO("N/A", 0L);
+
+        Object[] top = results.get(0);
+        return new PeakHourDTO(String.format("%02d:00", ((Number) top[0]).intValue()), ((Number) top[1]).longValue());
+    }
+
+  
+  
 }

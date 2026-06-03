@@ -18,8 +18,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "orders")
-public class Order extends BaseEntity {
+@Table(name = "orders", indexes = {
+    @Index(name = "idx_orders_status_created", columnList = "status, createdAt")
+})public class Order extends BaseEntity {
 
     @Column(nullable = false)
     private double total;

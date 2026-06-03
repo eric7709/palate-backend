@@ -46,7 +46,7 @@ public class CategoryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
+            @RequestParam(defaultValue = "desc") String sortDirection) {
         Page<Category> categoryPage = categoryService.getAllCategories(
                 search, page, size, sortBy, sortDirection);
         return categoryPage.map(categoryMapper::mapToDto);

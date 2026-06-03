@@ -3,6 +3,8 @@ package com.app.palate.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.app.palate.auth.Account;
@@ -13,32 +15,36 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String ACCESS_SECRET = "w4QhK7fZ8v+2H1j0p5S6G3bV9nLxTqY4RkF0uJcM1sA=";
-    private final String REFRESH_SECRET = "v7NqX1hP9dKzR4tB6sY3F8wL2mJ5cV0nHqT9eR1oGkM=";
-    private final long ACCESS_EXPIRATION = 1000 * 60 * 15; // 15 mins
-    private final long REFRESH_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
+    @Value("${jwt.access-secret}")
+    private String ACCESS_SECRET;
 
-    // In 0.12.x, use SecretKey interface explicitly instead of generic Key
-    private final SecretKey accessTokenSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(ACCESS_SECRET));
-    private final SecretKey refreshTokenSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(REFRESH_SECRET));
+    @Value("${jwt.refresh-secret}")
+    private String REFRESH_SECRET;
 
-    // -------------------------------
-    // Generate Access Token (SINGLE ROLE)
-    // -------------------------------
+    private final long ACCESS_EXPIRATION = 1000 * 60 * 15;
+    private final long REFRESH_EXPIRATION = 1000 * 60 * 60 * 24 * 7;
+
+    private SecretKey accessTokenSecret;
+    private SecretKey refreshTokenSecret;
+
+    @PostConstruct
+    public void init() {
+        accessTokenSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(ACCESS_SECRET));
+        refreshTokenSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(REFRESH_SECRET));
+    }
+
     public String generateAccessToken(Account account) {
         return Jwts.builder()
-                .subject(account.getEmail()) // .setSubject() is now .subject()
+                .subject(account.getEmail())
                 .claim("firstName", account.getFirstName())
-                .claim("role", account.getRole().name()) 
-                .issuedAt(new Date()) // .setIssuedAt() is now .issuedAt()
-                .expiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION)) // .setExpiration() is now .expiration()
-                .signWith(accessTokenSecret) // standard key signing mechanism
+                .claim("role", account.getRole().name())
+                .claim("id", account.getId())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION))
+                .signWith(accessTokenSecret)
                 .compact();
     }
 
-    // -------------------------------
-    // Generate Refresh Token
-    // -------------------------------
     public String generateRefreshToken(Account account) {
         return Jwts.builder()
                 .subject(account.getEmail())
@@ -49,16 +55,12 @@ public class JwtUtil {
                 .compact();
     }
 
-    // -------------------------------
-    // Extract Claims
-    // -------------------------------
     private Claims getClaims(String token) {
-        // parserBuilder() is gone. Use Jwts.parser().verifyWith(key).build()
         return Jwts.parser()
                 .verifyWith(accessTokenSecret)
                 .build()
-                .parseSignedClaims(token) // parseClaimsJws() is now parseSignedClaims()
-                .getPayload(); // getBody() is now getPayload()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     private Claims getRefreshClaims(String token) {
@@ -69,9 +71,6 @@ public class JwtUtil {
                 .getPayload();
     }
 
-    // -------------------------------
-    // Extract Email
-    // -------------------------------
     public String getEmail(String token) {
         return getClaims(token).getSubject();
     }
@@ -80,23 +79,14 @@ public class JwtUtil {
         return getRefreshClaims(token).getSubject();
     }
 
-    // -------------------------------
-    // Extract User ID
-    // -------------------------------
     public Long getUserId(String token) {
         return getClaims(token).get("id", Long.class);
     }
 
-    // -------------------------------
-    // Extract Single Role
-    // -------------------------------
     public String getRole(String token) {
         return getClaims(token).get("role", String.class);
     }
 
-    // -------------------------------
-    // Validate Refresh Token
-    // -------------------------------
     public boolean isRefreshTokenValid(String refreshToken) {
         try {
             Jwts.parser()
@@ -109,9 +99,6 @@ public class JwtUtil {
         }
     }
 
-    // -------------------------------
-    // Validate Access Token
-    // -------------------------------
     public boolean isValid(String token) {
         try {
             getClaims(token);

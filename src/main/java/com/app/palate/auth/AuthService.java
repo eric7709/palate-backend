@@ -73,7 +73,7 @@ public class AuthService {
             account.setLastName(request.getLastName().trim());
         }
         if (request.getStatus() != null) {
-            account.setStatus(request.getStatus().trim());
+            account.setStatus(request.getStatus());
         }
         if (request.getGender() != null) {
             account.setGender(request.getGender());
@@ -290,7 +290,7 @@ public class AuthService {
         account.setLastName(request.getLastName() != null ? request.getLastName().trim() : null);
         account.setPhoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber().trim() : null);
         account.setRole(request.getRole());
-        account.setStatus("ACTIVE");
+        account.setStatus(AccountStatus.ACTIVE); // Default to ACTIVE for new accounts
         account.setGender(request.getGender());
         return accountRepository.save(account);
     }

@@ -14,6 +14,6 @@ public class AccountRequestDTO {
     private String phoneNumber;
     private Gender gender;
     private String password;
-    private String status;
+    private AccountStatus status;
     private Role role;
 }

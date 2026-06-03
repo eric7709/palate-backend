@@ -2,6 +2,7 @@ package com.app.palate.dashboard;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,17 +20,9 @@ public class DashboardController {
     private final DashboardTopService dashboardTopService;
 
     @GetMapping("/stats")
-    public ResponseEntity<DashboardStats> getStats(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-
-        if (from.isAfter(to))
-            return ResponseEntity.badRequest().build();
-
-        Instant fromInstant = from.atStartOfDay(ZoneOffset.UTC).toInstant();
-        Instant toInstant = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
-
-        return ResponseEntity.ok(dashboardService.getStats(fromInstant, toInstant));
+    @ResponseStatus(HttpStatus.OK)
+    public DashboardDTO getDashboardData() {
+        return dashboardService.getDashboardData();
     }
 
     @GetMapping("/top")

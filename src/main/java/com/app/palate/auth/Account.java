@@ -44,7 +44,8 @@ public class Account {
 
     private String password;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
     @Enumerated(EnumType.STRING)
     private Role role;

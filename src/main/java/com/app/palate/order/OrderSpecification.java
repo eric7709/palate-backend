@@ -95,7 +95,7 @@ public class OrderSpecification {
                 Predicate tableNameLike = cb.like(
                         cb.lower(tableJoin.get("tableName")), term);
                 Predicate tableNumberLike = cb.like(
-                        cb.lower(tableJoin.get("tab leNumber").as(String.class)), term);
+                        cb.lower(tableJoin.get("tableNumber").as(String.class)), term);
                 Predicate tableLike = cb.or(tableNameLike, tableNumberLike);
 
                 Subquery<Long> itemSubquery = query.subquery(Long.class);
