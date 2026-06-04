@@ -131,6 +131,11 @@ public class OrderService {
         return new OrderPageResponse(ordersPage.map(OrderResponseDTO::mapToResponse), statusCounts);
     }
 
+    public long getActiveOrdersCount() {
+        return orderRepository.countByStatusNotIn(
+                List.of(OrderStatus.CANCELLED, OrderStatus.PAID));
+    }
+
     // ==========================
     // CUSTOMER ORDERS TODAY
     // ==========================

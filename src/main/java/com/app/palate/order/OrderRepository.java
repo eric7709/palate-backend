@@ -126,4 +126,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
                 ORDER BY 3 DESC
             """)
     List<Object[]> getCustomerStats(@Param("start") Instant start, @Param("end") Instant end);
+
+    long countByStatusNotIn(List<OrderStatus> statuses);
+
 }

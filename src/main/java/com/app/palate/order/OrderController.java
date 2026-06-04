@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,11 @@ public class OrderController {
         return orderService.getAllOrders(filter);
     }
 
-    
+    @GetMapping("/active/count")
+    public ResponseEntity<Long> getActiveOrdersCount() {
+        return ResponseEntity.ok(orderService.getActiveOrdersCount());
+    }
+
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public OrderResponseDTO updateOrderStatus(
