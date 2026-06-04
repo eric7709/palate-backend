@@ -17,7 +17,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -31,37 +30,72 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Public
-                        .requestMatchers("/api/palate/auth/**").permitAll()
+
+                        // ── Public auth ──────────────────────────────────────
+                        .requestMatchers("/api/palate/auth/login").permitAll()
+                        .requestMatchers("/api/palate/auth/refresh").permitAll()
                         .requestMatchers("/api/palate/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/palate/orders").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/palate/customers").permitAll()
-                        // Public READ
-                        .requestMatchers(HttpMethod.GET, "/api/palate/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/palate/menu-items/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/palate/menu-items/unavailable").permitAll() // ← before admin rules
-                        .requestMatchers(HttpMethod.GET, "/api/palate/tables/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/palate/orders/**").permitAll()
-                        // WebSocket
+
+                        // ── WebSocket (anyone) ───────────────────────────────
                         .requestMatchers("/api/palate/ws/**").permitAll()
-                        // Admin only
-                        .requestMatchers("/api/palate/employees/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/palate/categories").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/palate/categories/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/palate/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/api/palate/ping").permitAll()
+
+                        // ── Menu items (public read + real-time) ─────────────
+                        .requestMatchers(HttpMethod.GET, "/api/palate/menu-items/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/palate/menu-items/unavailable").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/palate/menu-items").hasAnyRole("ADMIN", "CASHIER")
                         .requestMatchers(HttpMethod.PUT, "/api/palate/menu-items/**").hasAnyRole("ADMIN", "CASHIER")
                         .requestMatchers(HttpMethod.DELETE, "/api/palate/menu-items/**").hasRole("ADMIN")
+
+                        // ── Categories (public read) ─────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/palate/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/palate/categories").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/palate/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/palate/categories/**").hasRole("ADMIN")
+
+                        // ── Orders ───────────────────────────────────────────
+                        // Customers place orders and view their own orders without login
+                        .requestMatchers(HttpMethod.POST, "/api/palate/orders").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/palate/orders/customer/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/palate/orders/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/palate/orders").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/palate/orders/**").hasAnyRole("ADMIN", "WAITER", "CASHIER")
+
+                        // ── Customers ────────────────────────────────────────
+                        .requestMatchers(HttpMethod.POST, "/api/palate/customers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/palate/customers").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/palate/customers/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/palate/customers/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/palate/customers/**").hasRole("ADMIN")
+
+                        // ── Tables ───────────────────────────────────────────
+                        // Waiters need to see tables and their allocations
+                        .requestMatchers(HttpMethod.GET, "/api/palate/tables/**").hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
+                        .requestMatchers(HttpMethod.GET, "/api/palate/tables").hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
                         .requestMatchers(HttpMethod.POST, "/api/palate/tables").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/palate/tables/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/palate/tables/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/palate/customers/**").hasRole("ADMIN")
-                        // Authenticated staff
-                        .requestMatchers("/api/palate/dashboard/**").authenticated()
+
+                        // ── Table allocations ────────────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/palate/table-allocations/**").hasAnyRole("ADMIN", "MANAGER", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/palate/table-allocations/**").hasAnyRole("ADMIN", "MANAGER")
+
+                        // ── Employees ────────────────────────────────────────
+                        .requestMatchers("/api/palate/employees/**").hasRole("ADMIN")
+
+                        // ── Analytics ────────────────────────────────────────
+                        .requestMatchers("/api/palate/analytics/**").hasAnyRole("ADMIN", "MANAGER")
+
+                        // ── Dashboard ────────────────────────────────────────
+                        .requestMatchers("/api/palate/dashboard/**").hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
+
+                        // ── Authenticated staff endpoints ────────────────────
                         .requestMatchers("/api/palate/auth/me").authenticated()
                         .requestMatchers("/api/palate/auth/change-password").authenticated()
-                        // Fallback
+
+                        // ── Fallback ─────────────────────────────────────────
                         .anyRequest().authenticated())
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, exx) -> {
                             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

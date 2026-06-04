@@ -1,7 +1,5 @@
 package com.app.palate.seed;
 
-import com.app.palate.auth.Account;
-import com.app.palate.auth.AccountRepository;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
 import com.app.palate.restaurantTable.RestaurantTableStatus;
@@ -22,17 +20,16 @@ import java.util.Set;
 public class RestaurantTableDataInitializer {
 
     private final RestaurantTableRepository tableRepository;
-    private final AccountRepository accountRepository;
 
     private static final List<TableSeed> TABLE_SEEDS = List.of(
-            new TableSeed("Table A1", 1, 2),
-            new TableSeed("Table A2", 2, 2),
-            new TableSeed("Table B1", 3, 4),
-            new TableSeed("Table B2", 4, 4),
-            new TableSeed("Table C1", 5, 6),
-            new TableSeed("Table C2", 6, 6),
-            new TableSeed("VIP 1", 7, 8),
-            new TableSeed("VIP 2", 8, 10)
+            new TableSeed("Tokyo",    1, 2),
+            new TableSeed("Paris",    2, 2),
+            new TableSeed("New York", 3, 4),
+            new TableSeed("London",   4, 4),
+            new TableSeed("Dubai",    5, 6),
+            new TableSeed("Sydney",   6, 6),
+            new TableSeed("Rome",     7, 8),
+            new TableSeed("Istanbul", 8, 10)
     );
 
     @Bean
@@ -47,12 +44,6 @@ public class RestaurantTableDataInitializer {
                     )
             );
 
-            List<Account> waiters = accountRepository.findByRole(com.app.palate.auth.Role.ROLE_WAITER);
-            List<Account> cashiers = accountRepository.findByRole(com.app.palate.auth.Role.ROLE_CASHIER);
-
-            Account defaultWaiter = waiters.isEmpty() ? null : waiters.get(0);
-            Account defaultCashier = cashiers.isEmpty() ? null : cashiers.get(0);
-
             Instant now = Instant.now();
 
             List<RestaurantTable> toSave = TABLE_SEEDS.stream()
@@ -63,13 +54,8 @@ public class RestaurantTableDataInitializer {
                         table.setTableNumber(seed.tableNumber());
                         table.setCapacity(seed.capacity());
                         table.setStatus(RestaurantTableStatus.AVAILABLE);
-                        table.setWaiter(defaultWaiter);
-                        table.setCashier(defaultCashier);
-                        
-                        // FIX: Manually set audit fields to prevent NULL constraint violations
                         table.setCreatedAt(now);
                         table.setUpdatedAt(now);
-
                         return table;
                     })
                     .toList();

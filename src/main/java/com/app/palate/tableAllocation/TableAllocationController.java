@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/table-allocations")
+@RequestMapping("/api/palate/table-allocations")
 @RequiredArgsConstructor
 public class TableAllocationController {
 
@@ -21,7 +21,6 @@ public class TableAllocationController {
     public TableAllocationResponseDTO allocateStaff(
             @RequestParam Long tableId,
             @RequestParam Long staffId) {
-
         return mapper.toDTO(allocationService.allocateStaff(tableId, staffId));
     }
 

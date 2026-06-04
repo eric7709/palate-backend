@@ -11,7 +11,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.app.palate.auth.Account;
-import com.app.palate.auth.AccountRepository;
 import com.app.palate.auth.AuthService;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.tableAllocation.TableAllocationService;
@@ -28,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class RestaurantTableService {
 
     private final RestaurantTableRepository restaurantTableRepository;
-    private final AccountRepository accountRepository;
     private final TableAllocationService tableAllocationService;
     private final AuthService authService;
 
@@ -45,7 +43,8 @@ public class RestaurantTableService {
             ValidationUtils.requireGreaterThanZero(request.getCapacity(), "Capacity");
         }
 
-        RestaurantTableStatus tableStatus = request.getStatus() != null ? request.getStatus()
+        RestaurantTableStatus tableStatus = request.getStatus() != null
+                ? request.getStatus()
                 : RestaurantTableStatus.AVAILABLE;
 
         validateUniqueNameOnCreation(request.getTableName().trim());
@@ -57,19 +56,22 @@ public class RestaurantTableService {
         table.setStatus(tableStatus);
         table.setCapacity(request.getCapacity());
 
+        // Save first to get a persisted ID before allocating
         RestaurantTable savedTable = restaurantTableRepository.save(table);
 
+        // allocateStaff now handles setting waiter/cashier on the table entity
+        // and persisting it, so we don't re-set them here to avoid stale overwrites
         if (request.getWaiterId() != null) {
             tableAllocationService.allocateStaff(savedTable.getId(), request.getWaiterId());
-            savedTable.setWaiter(authService.getAccountById(request.getWaiterId()));
         }
 
         if (request.getCashierId() != null) {
             tableAllocationService.allocateStaff(savedTable.getId(), request.getCashierId());
-            savedTable.setCashier(authService.getAccountById(request.getCashierId()));
         }
 
-        return restaurantTableRepository.save(savedTable);
+        // Re-fetch to return the fully up-to-date state
+        return restaurantTableRepository.findById(savedTable.getId())
+                .orElseThrow(() -> new BadRequestException("Table not found after creation"));
     }
 
     // =========================
@@ -86,8 +88,7 @@ public class RestaurantTableService {
             return restaurantTableRepository.findByWaiterId(waiterId);
         if (cashierId != null)
             return restaurantTableRepository.findByCashierId(cashierId);
-        else
-            return null;
+        return null;
     }
 
     public Page<RestaurantTable> getAllTables(
@@ -186,10 +187,13 @@ public class RestaurantTableService {
         if (waiterId != null) {
             boolean isDifferent = table.getWaiter() == null || !table.getWaiter().getId().equals(waiterId);
             if (isDifferent) {
+                // allocateStaff handles closing old + setting table.waiter + saving table
                 tableAllocationService.allocateStaff(table.getId(), waiterId);
+                // Re-fetch waiter from the already-cached service to keep local ref consistent
                 table.setWaiter(authService.getAccountById(waiterId));
             }
         } else if (table.getWaiter() != null) {
+            // deallocateStaff now saves the table, so null is persisted there
             tableAllocationService.deallocateStaff(table.getId(), table.getWaiter().getId());
             table.setWaiter(null);
         }
@@ -231,8 +235,8 @@ public class RestaurantTableService {
         List<RestaurantTable> tablesToSave = new ArrayList<>();
         java.util.Set<String> incomingNamesLower = new java.util.HashSet<>();
         java.util.Set<Integer> incomingNumbers = new java.util.HashSet<>();
-        java.util.Map<Long, Account> accountCache = new java.util.HashMap<>();
 
+        // --- Validate all requests up front before touching the DB ---
         for (RestaurantTableRequestDTO req : requests) {
             ValidationUtils.requireNonNull(req, "Bulk item");
             ValidationUtils.requireNonBlank(req.getTableName(), "Table name");
@@ -252,45 +256,40 @@ public class RestaurantTableService {
             }
         }
 
+        // --- Build entities (without setting waiter/cashier — let allocateStaff own that) ---
+        // FIX #4: do NOT pre-set waiter/cashier on the entity here;
+        // allocateStaff will set them and persist, avoiding stale-entity overwrites.
         for (RestaurantTableRequestDTO req : requests) {
-            RestaurantTableStatus tableStatus = req.getStatus() != null ? req.getStatus()
-                    : RestaurantTableStatus.AVAILABLE;
             validateUniqueNameOnCreation(req.getTableName().trim());
             validateUniqueNumberOnCreation(req.getTableNumber());
+
             RestaurantTable table = new RestaurantTable();
             table.setTableName(req.getTableName().trim());
             table.setTableNumber(req.getTableNumber());
-            table.setStatus(tableStatus);
+            table.setStatus(req.getStatus() != null ? req.getStatus() : RestaurantTableStatus.AVAILABLE);
             table.setCapacity(req.getCapacity());
-
-            if (req.getWaiterId() != null) {
-                Account waiter = accountCache.computeIfAbsent(req.getWaiterId(), aid -> accountRepository.findById(aid)
-                        .orElseThrow(() -> new BadRequestException("Waiter ID " + aid + " not found")));
-                table.setWaiter(waiter);
-            }
-
-            if (req.getCashierId() != null) {
-                Account cashier = accountCache.computeIfAbsent(req.getCashierId(),
-                        aid -> accountRepository.findById(aid)
-                                .orElseThrow(() -> new BadRequestException("Cashier ID " + aid + " not found")));
-                table.setCashier(cashier);
-            }
 
             tablesToSave.add(table);
         }
 
         List<RestaurantTable> savedTables = restaurantTableRepository.saveAll(tablesToSave);
 
-        for (RestaurantTable savedTable : savedTables) {
-            if (savedTable.getWaiter() != null) {
-                tableAllocationService.allocateStaff(savedTable.getId(), savedTable.getWaiter().getId());
+        // --- Now allocate staff via the service so all side-effects are consistent ---
+        for (int i = 0; i < savedTables.size(); i++) {
+            RestaurantTable savedTable = savedTables.get(i);
+            RestaurantTableRequestDTO req = requests.get(i);
+
+            if (req.getWaiterId() != null) {
+                tableAllocationService.allocateStaff(savedTable.getId(), req.getWaiterId());
             }
-            if (savedTable.getCashier() != null) {
-                tableAllocationService.allocateStaff(savedTable.getId(), savedTable.getCashier().getId());
+            if (req.getCashierId() != null) {
+                tableAllocationService.allocateStaff(savedTable.getId(), req.getCashierId());
             }
         }
 
-        return savedTables;
+        // Re-fetch all saved tables to return fully populated state
+        List<Long> ids = savedTables.stream().map(RestaurantTable::getId).toList();
+        return restaurantTableRepository.findAllById(ids);
     }
 
     // =========================
