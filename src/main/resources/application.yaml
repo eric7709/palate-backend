@@ -20,23 +20,23 @@
 #   refresh-secret: v7NqX1hP9dKzR4tB6sY3F8wL2mJ5cV0nHqT9eR1oGkM=
 
 
-# spring:
-#   application:
-#     name: palate
-#   datasource:
-#     url: ${DATABASE_URL}
-#     username: ${DB_USERNAME}
-#     password: ${DB_PASSWORD}
-#     driver-class-name: org.postgresql.Driver
-#   jpa:
-#     database-platform: org.hibernate.dialect.PostgreSQLDialect
-#     hibernate:
-#       ddl-auto: update
-#     show-sql: false
-#     properties:
-#       hibernate:
-#         format_sql: false
+spring:
+  application:
+    name: palate
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
 
-# jwt:
-#   access-secret: ${JWT_ACCESS_SECRET}
-#   refresh-secret: ${JWT_REFRESH_SECRET}
+jwt:
+  access-secret: ${JWT_ACCESS_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
