@@ -32,10 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        // ⭐ SKIP JWT VALIDATION FOR WEBSOCKET ENDPOINTS
         String path = request.getRequestURI();
-        if (path.startsWith("/api/palate/ws")) {
-            log.debug("Skipping JWT filter for WebSocket endpoint: {}", path);
+
+        // Skip JWT validation for WebSocket and webhook endpoints
+        if (path.startsWith("/api/palate/ws") || path.startsWith("/webhooks/")) {
+            log.debug("Skipping JWT filter for: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -61,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(request, response); // always continue
+        filterChain.doFilter(request, response);
     }
 
     private String extractToken(HttpServletRequest request) {
