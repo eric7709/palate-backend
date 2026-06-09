@@ -15,17 +15,22 @@ import com.app.palate.menuItem.MenuItem;
 import com.app.palate.menuItem.MenuItemStatus;
 import com.app.palate.orderItem.OrderItem;
 import com.app.palate.orderItem.OrderItemDTO;
+import com.app.palate.payment.MonnifyInvoiceResponse;
+import com.app.palate.payment.MonnifyService;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.utils.EntityResolver;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class CreateOrder {
     private final EntityResolver entityResolver;
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
+    private final MonnifyService monnifyService;
 
     public OrderResponseDTO createOrder(OrderRequestDTO request, OrderEvents orderEvents) {
         validateRequest(request);
@@ -33,8 +38,6 @@ public class CreateOrder {
         RestaurantTable table = entityResolver.resolveRestaurantTable(request.getTableId());
         Account waiter = entityResolver.resolveEmployee(request.getWaiterId());
         Account cashier = entityResolver.resolveEmployee(request.getCashierId());
-
-        // Strict resolution: will throw Exception if ID provided is invalid
         Customer customer = resolveCustomer(request, customerRepository);
 
         Order order = new Order();
@@ -76,8 +79,26 @@ public class CreateOrder {
         order.setQuantity(totalQuantity);
 
         Order savedOrder = orderRepository.save(order);
-        OrderResponseDTO response = OrderResponseDTO.mapToResponse(savedOrder);
 
+        // Generate virtual account for this order
+        try {
+            String customerName = customer.getTitle() + " " + customer.getName();
+            MonnifyInvoiceResponse invoice = monnifyService.createOrderInvoice(
+                savedOrder.getId(),
+                savedOrder.getTotal(),
+                customerName  // actual customer name
+            );
+            savedOrder.setVirtualAccountNumber(invoice.accountNumber());
+            savedOrder.setVirtualBankName(invoice.bankName());
+            savedOrder.setMonnifyReference(invoice.invoiceReference());
+            orderRepository.save(savedOrder);
+            log.info("Virtual account created for order {}: {} - {}",
+                savedOrder.getId(), invoice.bankName(), invoice.accountNumber());
+        } catch (Exception e) {
+            log.error("Failed to generate virtual account for order {}", savedOrder.getId(), e);
+        }
+
+        OrderResponseDTO response = OrderResponseDTO.mapToResponse(savedOrder);
         orderEvents.broadcastCreated(response);
         return response;
     }
@@ -99,7 +120,6 @@ public class CreateOrder {
             OrderRequestDTO request,
             CustomerRepository customerRepository) {
 
-        // 1. If customer ID is provided, try to find and update that customer
         if (request.getCustomerId() != null) {
             Customer existing = customerRepository.findById(request.getCustomerId()).orElse(null);
             if (existing != null) {
@@ -113,13 +133,11 @@ public class CreateOrder {
             }
         }
 
-        // 2. Require name and title before going further
         if (request.getCustomerName() == null || request.getCustomerName().isBlank() ||
                 request.getCustomerTitle() == null || request.getCustomerTitle().isBlank()) {
             throw new BadRequestException("Customer name and title are required");
         }
 
-        // 3. Check for existing customer by phone and update
         String phone = request.getCustomerPhoneNumber();
         if (phone != null && !phone.isBlank()) {
             Customer byPhone = customerRepository.findByPhoneNumber(phone);
@@ -130,7 +148,6 @@ public class CreateOrder {
             }
         }
 
-        // 4. Create new customer
         Customer newCustomer = new Customer();
         newCustomer.setName(request.getCustomerName());
         newCustomer.setTitle(request.getCustomerTitle());

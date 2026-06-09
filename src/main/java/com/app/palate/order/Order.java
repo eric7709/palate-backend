@@ -19,12 +19,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "orders", indexes = {
-    @Index(name = "idx_orders_status_created", columnList = "status, createdAt")
-})public class Order extends BaseEntity {
+        @Index(name = "idx_orders_status_created", columnList = "status, createdAt")
+})
+public class Order extends BaseEntity {
 
     @Column(nullable = false)
     private double total;
-    
+
     @Column(nullable = false)
     private Integer quantity;
 
@@ -57,4 +58,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     @JoinColumn(name = "customer_id", foreignKey = @ForeignKey(name = "fk_order_customer"), nullable = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Customer customer;
+
+    @Column(nullable = true)
+    private String virtualAccountNumber;
+
+    private String monnifyReference;
+
+    @Column(nullable = true)
+    private String virtualBankName;
 }

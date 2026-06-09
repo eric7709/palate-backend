@@ -17,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -35,6 +36,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/palate/auth/login").permitAll()
                         .requestMatchers("/api/palate/auth/refresh").permitAll()
                         .requestMatchers("/api/palate/health").permitAll()
+
+                        // ── Webhooks ─────────────────────────────────────────
+                        .requestMatchers("/webhooks/**").permitAll()
 
                         // ── WebSocket (anyone) ───────────────────────────────
                         .requestMatchers("/api/palate/ws/**").permitAll()
@@ -59,7 +63,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/palate/orders/customer/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/palate/orders/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/palate/orders").authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/api/palate/orders/**").hasAnyRole("ADMIN", "WAITER", "CASHIER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/palate/orders/**")
+                        .hasAnyRole("ADMIN", "WAITER", "CASHIER")
 
                         // ── Customers ────────────────────────────────────────
                         .requestMatchers(HttpMethod.POST, "/api/palate/customers").permitAll()
@@ -70,15 +75,19 @@ public class SecurityConfig {
 
                         // ── Tables ───────────────────────────────────────────
                         // Waiters need to see tables and their allocations
-                        .requestMatchers(HttpMethod.GET, "/api/palate/tables/**").hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
-                        .requestMatchers(HttpMethod.GET, "/api/palate/tables").hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
+                        .requestMatchers(HttpMethod.GET, "/api/palate/tables/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
+                        .requestMatchers(HttpMethod.GET, "/api/palate/tables")
+                        .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
                         .requestMatchers(HttpMethod.POST, "/api/palate/tables").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/palate/tables/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/palate/tables/**").hasRole("ADMIN")
 
                         // ── Table allocations ────────────────────────────────
-                        .requestMatchers(HttpMethod.GET, "/api/palate/table-allocations/**").hasAnyRole("ADMIN", "MANAGER", "WAITER")
-                        .requestMatchers(HttpMethod.POST, "/api/palate/table-allocations/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/palate/table-allocations/**")
+                        .hasAnyRole("ADMIN", "MANAGER", "WAITER")
+                        .requestMatchers(HttpMethod.POST, "/api/palate/table-allocations/**")
+                        .hasAnyRole("ADMIN", "MANAGER")
 
                         // ── Employees ────────────────────────────────────────
                         .requestMatchers("/api/palate/employees/**").hasRole("ADMIN")

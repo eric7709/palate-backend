@@ -24,7 +24,9 @@ public class OrderResponseDTO {
     private double total;
     private Instant createdAt;
     private Instant updatedAt;
-    
+    private String virtualAccountNumber;
+    private String virtualBankName;
+    private String monnifyReference;
     // Nested Grouped Data
     private UserSummaryDTO waiter;
     private UserSummaryDTO cashier;
@@ -33,9 +35,9 @@ public class OrderResponseDTO {
     private List<OrderItemResponse> items;
 
     // --- NESTED SUB-DTOs ---
-    
+
     @Getter
-@Setter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class UserSummaryDTO {
@@ -44,7 +46,7 @@ public class OrderResponseDTO {
     }
 
     @Getter
-@Setter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class CustomerSummaryDTO {
@@ -54,7 +56,7 @@ public class OrderResponseDTO {
     }
 
     @Getter
-@Setter
+    @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class TableSummaryDTO {
@@ -67,8 +69,9 @@ public class OrderResponseDTO {
 
     public static List<OrderItemResponse> mapToOrderItem(List<OrderItem> items) {
         List<OrderItemResponse> response = new ArrayList<>();
-        if (items == null) return response;
-        
+        if (items == null)
+            return response;
+
         for (OrderItem item : items) {
             response.add(new OrderItemResponse(
                     item.getId(),
@@ -76,8 +79,7 @@ public class OrderResponseDTO {
                     item.getMenuItem() != null ? item.getMenuItem().getId() : null,
                     item.getQuantity(),
                     item.getPrice(),
-                    item.isTakeOut()
-            ));
+                    item.isTakeOut()));
         }
         return response;
     }
@@ -92,24 +94,25 @@ public class OrderResponseDTO {
         dto.setTotal(order.getTotal());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
+        dto.setVirtualAccountNumber(order.getVirtualAccountNumber()); // add this
+        dto.setVirtualBankName(order.getVirtualBankName()); // add this
+        dto.setMonnifyReference(order.getMonnifyReference()); // add this
         dto.setItems(mapToOrderItem(order.getItems()));
 
         // Map Customer Group
         if (order.getCustomer() != null) {
             dto.setCustomer(new CustomerSummaryDTO(
-                order.getCustomer().getId(),
-                order.getCustomer().getName(),
-                order.getCustomer().getTitle()
-            ));
+                    order.getCustomer().getId(),
+                    order.getCustomer().getName(),
+                    order.getCustomer().getTitle()));
         }
 
         // Map Table Group
         if (order.getTable() != null) {
             dto.setTable(new TableSummaryDTO(
-                order.getTable().getId(),
-                order.getTable().getTableNumber(),
-                order.getTable().getTableName()
-            ));
+                    order.getTable().getId(),
+                    order.getTable().getTableNumber(),
+                    order.getTable().getTableName()));
         }
 
         // Map Waiter Group
