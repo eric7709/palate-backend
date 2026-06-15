@@ -31,8 +31,7 @@ public class AdminAccountInitializer {
                                 Account admin = new Account();
                                 admin.setFirstName("Admin");
                                 admin.setLastName("User");
-                                admin.setEmail(adminEmail); // ← same value
-                                admin.setPhoneNumber("+2348000000000");
+                                admin.setEmail(adminEmail);
                                 admin.setPassword(passwordEncoder.encode("admin123"));
                                 admin.setStatus(AccountStatus.ACTIVE);
                                 admin.setRole(Role.ROLE_ADMIN);
