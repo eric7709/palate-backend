@@ -34,7 +34,7 @@ public class AccountDataInitializer {
     ) {}
 
     private static final List<AccountSeed> ALL_SEEDS = List.of(
-            new AccountSeed("Admin", "Safron",  "admin@safronhotel.com", null,          "admin123",  Role.ROLE_ADMIN,   Gender.MALE),
+            new AccountSeed("Admin", "Safron",  "admin@safronhotel.com", "08123221122",          "admin123",  Role.ROLE_ADMIN,   Gender.MALE),
             new AccountSeed("John",  "Doe",   "john@safronhotel.com",  "08011111111", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
             new AccountSeed("Jane",  "Smith", "jane@safronhotel.com",  "08022222222", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE),
             new AccountSeed("Mike",  "Brown", "mike@safronhotel.com",  "08033333333", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
