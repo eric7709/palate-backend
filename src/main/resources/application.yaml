@@ -1,61 +1,61 @@
-spring:
-  application:
-    name: palate
-  datasource:
-    url: jdbc:postgresql://localhost:5432/palatedb
-    username: postgres
-    password: West5555
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-jwt:
-  access-secret: w4QhK7fZ8v+2H1j0p5S6G3bV9nLxTqY4RkF0uJcM1sA=
-  refresh-secret: v7NqX1hP9dKzR4tB6sY3F8wL2mJ5cV0nHqT9eR1oGkM=
-
-monnify:
-  api:
-    key: MK_TEST_YFM6MTTHKW
-  secret:
-    key: QT6D23NPJXUC49MB990UV2CU9V7GL6GJ
-  contract:
-    code: 1327331077
-
-    
 # spring:
 #   application:
 #     name: palate
 #   datasource:
-#     url: ${DATABASE_URL}
-#     username: ${DB_USERNAME}
-#     password: ${DB_PASSWORD}
+#     url: jdbc:postgresql://localhost:5432/palatedb
+#     username: postgres
+#     password: West5555
 #     driver-class-name: org.postgresql.Driver
 #   jpa:
 #     database-platform: org.hibernate.dialect.PostgreSQLDialect
 #     hibernate:
-#       ddl-auto: update
-#     show-sql: false
+#       ddl-auto: create-drop
+#     show-sql: true
 #     properties:
 #       hibernate:
-#         format_sql: false
+#         format_sql: true
 
 # jwt:
-#   access-secret: ${JWT_ACCESS_SECRET}
-#   refresh-secret: ${JWT_REFRESH_SECRET}
+#   access-secret: w4QhK7fZ8v+2H1j0p5S6G3bV9nLxTqY4RkF0uJcM1sA=
+#   refresh-secret: v7NqX1hP9dKzR4tB6sY3F8wL2mJ5cV0nHqT9eR1oGkM=
 
 # monnify:
 #   api:
-#     key: ${MONNIFY_API_KEY}
+#     key: MK_TEST_YFM6MTTHKW
 #   secret:
-#     key: ${MONNIFY_SECRET_KEY}
+#     key: QT6D23NPJXUC49MB990UV2CU9V7GL6GJ
 #   contract:
-#     code: ${MONNIFY_CONTRACT_CODE}
+#     code: 1327331077
+
+    
+spring:
+  application:
+    name: palate
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+jwt:
+  access-secret: ${JWT_ACCESS_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
+
+monnify:
+  api:
+    key: ${MONNIFY_API_KEY}
+  secret:
+    key: ${MONNIFY_SECRET_KEY}
+  contract:
+    code: ${MONNIFY_CONTRACT_CODE}
 
 
     
