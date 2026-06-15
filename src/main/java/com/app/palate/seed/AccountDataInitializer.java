@@ -6,55 +6,77 @@ import com.app.palate.auth.AccountStatus;
 import com.app.palate.auth.Gender;
 import com.app.palate.auth.Role;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;@Configuration
+import java.util.List;
+
+@Slf4j
+@Configuration
 @RequiredArgsConstructor
 public class AccountDataInitializer {
+
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository accountRepository;
 
-    private static final List<AccountSeed> ACCOUNT_SEEDS = List.of(
-            new AccountSeed("John", "Doe", "john@thesafronhotel.com", "08011111111", Role.ROLE_WAITER, Gender.MALE),
-            new AccountSeed("Jane", "Smith", "jane@thesafronhotel.com", "08022222222", Role.ROLE_CASHIER, Gender.FEMALE),
-            new AccountSeed("Mike", "Brown", "mike@thesafronhotel.com", "08033333333", Role.ROLE_WAITER, Gender.MALE),
-            new AccountSeed("Lucy", "Adams", "lucy@thesafronhotel.com", "08044444444", Role.ROLE_CASHIER, Gender.FEMALE)
+    private record AccountSeed(
+            String firstName,
+            String lastName,
+            String email,
+            String phone,
+            String password,
+            Role role,
+            Gender gender
+    ) {}
+
+    private static final List<AccountSeed> ALL_SEEDS = List.of(
+            new AccountSeed("Admin", "Safron",  "admin@safronhotel.com", null,          "admin123",  Role.ROLE_ADMIN,   Gender.MALE),
+            new AccountSeed("John",  "Doe",   "john@safronhotel.com",  "08011111111", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
+            new AccountSeed("Jane",  "Smith", "jane@safronhotel.com",  "08022222222", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE),
+            new AccountSeed("Mike",  "Brown", "mike@safronhotel.com",  "08033333333", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
+            new AccountSeed("Lucy",  "Adams", "lucy@safronhotel.com",  "08044444444", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE)
     );
 
     @Bean
-    @Order(5)
-    CommandLineRunner seedAccounts() {
+    @Order(1)
+    CommandLineRunner seedAllAccounts() {
         return args -> {
-            List<String> emails = ACCOUNT_SEEDS.stream().map(a -> a.email().toLowerCase()).toList();
-            List<String> existingEmails = accountRepository.findExistingEmails(emails);
+            for (AccountSeed seed : ALL_SEEDS) {
+                try {
+                    accountRepository.findByEmail(seed.email().toLowerCase()).ifPresentOrElse(
+                            existing -> log.info("ℹ️ Account already exists, skipping: {}", seed.email()),
+                            () -> {
+                                Account account = new Account();
+                                account.setFirstName(seed.firstName());
+                                account.setLastName(seed.lastName());
+                                account.setEmail(seed.email().toLowerCase());
+                                account.setPassword(passwordEncoder.encode(seed.password()));
+                                account.setRole(seed.role());
+                                account.setGender(seed.gender());
+                                account.setStatus(AccountStatus.ACTIVE);
 
-            List<Account> toSave = ACCOUNT_SEEDS.stream()
-                    .filter(a -> !existingEmails.contains(a.email().toLowerCase()))
-                    .map(seed -> {
-                        Account account = new Account();
-                        account.setFirstName(seed.firstName());
-                        account.setLastName(seed.lastName());
-                        account.setEmail(seed.email());
-                        account.setPhoneNumber(seed.phone());
-                        account.setRole(seed.role());
-                        account.setGender(seed.gender()); // Essential: set gender
-                        account.setStatus(AccountStatus.ACTIVE); // Essential: set status
-                        account.setPassword(passwordEncoder.encode("staff123"));
-                        return account;
-                    })
-                    .toList();
-            if (!toSave.isEmpty()) {
-                accountRepository.saveAll(toSave);
-                System.out.println("✅ Seeded " + toSave.size() + " accounts");
+                                // Only set phone if provided
+                                if (seed.phone() != null) {
+                                    // Skip if phone already taken
+                                    if (accountRepository.existsByPhoneNumber(seed.phone())) {
+                                        log.warn("⚠️ Phone {} already exists, saving {} without phone", seed.phone(), seed.email());
+                                    } else {
+                                        account.setPhoneNumber(seed.phone());
+                                    }
+                                }
+
+                                accountRepository.save(account);
+                                log.info("✅ Seeded account: {} ({})", seed.email(), seed.role());
+                            }
+                    );
+                } catch (Exception e) {
+                    log.warn("⚠️ Failed to seed account {}: {}", seed.email(), e.getMessage());
+                }
             }
         };
     }
-
-    private record AccountSeed(
-            String firstName, String lastName, String email, String phone, Role role, Gender gender
-    ) {}
 }
