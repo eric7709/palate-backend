@@ -19,10 +19,10 @@ public class AccountDataInitializer {
     private final AccountRepository accountRepository;
 
     private static final List<AccountSeed> ACCOUNT_SEEDS = List.of(
-            new AccountSeed("John", "Doe", "john@safron.com", "08011111111", Role.ROLE_WAITER, Gender.MALE),
-            new AccountSeed("Jane", "Smith", "jane@safron.com", "08022222222", Role.ROLE_CASHIER, Gender.FEMALE),
-            new AccountSeed("Mike", "Brown", "mike@safron.com", "08033333333", Role.ROLE_WAITER, Gender.MALE),
-            new AccountSeed("Lucy", "Adams", "lucy@safron.com", "08044444444", Role.ROLE_CASHIER, Gender.FEMALE)
+            new AccountSeed("John", "Doe", "john@thesafronhotel.com", "08011111111", Role.ROLE_WAITER, Gender.MALE),
+            new AccountSeed("Jane", "Smith", "jane@thesafronhotel.com", "08022222222", Role.ROLE_CASHIER, Gender.FEMALE),
+            new AccountSeed("Mike", "Brown", "mike@thesafronhotel.com", "08033333333", Role.ROLE_WAITER, Gender.MALE),
+            new AccountSeed("Lucy", "Adams", "lucy@thesafronhotel.com", "08044444444", Role.ROLE_CASHIER, Gender.FEMALE)
     );
 
     @Bean
