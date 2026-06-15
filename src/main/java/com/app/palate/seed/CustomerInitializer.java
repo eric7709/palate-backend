@@ -19,24 +19,29 @@ public class CustomerInitializer {
     @Order(2) // Runs after Admin initialization
     CommandLineRunner seedCustomers() {
         return args -> {
-            if (customerRepository.count() == 0) {
-                Customer c1 = new Customer();
-                c1.setName("John Doe");
-                c1.setTitle("Mr.");
-                c1.setPhoneNumber("+2348012345678");
-                c1.setEmail("john.doe@example.com");
+            seedIfAbsent("+2348012345678", c -> {
+                c.setName("John Doe");
+                c.setTitle("Mr.");
+                c.setEmail("john.doe@example.com");
+            });
 
-                Customer c2 = new Customer();
-                c2.setName("Jane Smith");
-                c2.setTitle("Ms.");
-                c2.setPhoneNumber("+2348098765432");
-                c2.setEmail("jane.smith@example.com");
-
-                customerRepository.saveAll(List.of(c1, c2));
-                System.out.println("✅ Dummy customers seeded successfully");
-            } else {
-                System.out.println("ℹ️ Customers already exist, skipping seeding");
-            }
+            seedIfAbsent("+2348098765432", c -> {
+                c.setName("Jane Smith");
+                c.setTitle("Ms.");
+                c.setEmail("jane.smith@example.com");
+            });
         };
+    }
+
+    private void seedIfAbsent(String phone, java.util.function.Consumer<Customer> configure) {
+        if (customerRepository.findByPhoneNumber(phone).isEmpty()) {
+            Customer c = new Customer();
+            c.setPhoneNumber(phone);
+            configure.accept(c);
+            customerRepository.save(c);
+            System.out.println("✅ Seeded customer: " + phone);
+        } else {
+            System.out.println("ℹ️ Customer already exists, skipping: " + phone);
+        }
     }
 }

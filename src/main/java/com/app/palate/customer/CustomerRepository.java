@@ -2,15 +2,19 @@ package com.app.palate.customer;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {    Customer findByPhoneNumber(String phoneNumber);
+public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {   
 
     Customer findByEmail(String email);
+
+    Optional<Customer> findByPhoneNumber(String phoneNumber);
+
 
     @Query("""
                 SELECT new com.app.palate.customer.TopCustomerDTO(
