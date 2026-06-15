@@ -3,15 +3,17 @@ package com.app.palate.seed;
 import com.app.palate.customer.Customer;
 import com.app.palate.customer.CustomerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
-import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j 
 public class CustomerInitializer {
     private final CustomerRepository customerRepository;
 
@@ -34,14 +36,14 @@ public class CustomerInitializer {
     }
 
     private void seedIfAbsent(String phone, java.util.function.Consumer<Customer> configure) {
-        if (customerRepository.findByPhoneNumber(phone).isEmpty()) {
-            Customer c = new Customer();
-            c.setPhoneNumber(phone);
-            configure.accept(c);
-            customerRepository.save(c);
-            System.out.println("✅ Seeded customer: " + phone);
-        } else {
-            System.out.println("ℹ️ Customer already exists, skipping: " + phone);
-        }
+        customerRepository.findByPhoneNumber(phone).ifPresentOrElse(
+                existing -> log.info("ℹ️ Customer already exists, skipping: {}", phone),
+                () -> {
+                    Customer c = new Customer();
+                    c.setPhoneNumber(phone);
+                    configure.accept(c);
+                    customerRepository.save(c);
+                    log.info("✅ Seeded customer: {}", phone);
+                });
     }
 }

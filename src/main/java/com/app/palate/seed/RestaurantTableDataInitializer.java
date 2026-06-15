@@ -1,5 +1,8 @@
 package com.app.palate.seed;
 
+import com.app.palate.auth.Account;
+import com.app.palate.auth.AccountRepository;
+import com.app.palate.auth.Role;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
 import com.app.palate.restaurantTable.RestaurantTableStatus;
@@ -16,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +32,7 @@ public class RestaurantTableDataInitializer {
     private final RestaurantTableRepository tableRepository;
     private final RoomRepository roomRepository;
     private final QrCodeService qrCodeService;
+    private final AccountRepository accountRepository;
 
     private static final List<TableSeed> TABLE_SEEDS = List.of(
             new TableSeed("Tokyo",    1, 2),
@@ -55,6 +60,9 @@ public class RestaurantTableDataInitializer {
     @Order(6)
     CommandLineRunner seedTables() {
         return args -> {
+            List<Account> waiters  = accountRepository.findByRole(Role.ROLE_WAITER);
+            List<Account> cashiers = accountRepository.findByRole(Role.ROLE_CASHIER);
+
             Set<Integer> existingNumbers = new HashSet<>(
                     tableRepository.findExistingTableNumbers(
                             TABLE_SEEDS.stream()
@@ -65,28 +73,40 @@ public class RestaurantTableDataInitializer {
 
             Instant now = Instant.now();
 
-            List<RestaurantTable> toSave = TABLE_SEEDS.stream()
-                    .filter(seed -> !existingNumbers.contains(seed.tableNumber()))
-                    .map(seed -> {
-                        RestaurantTable table = new RestaurantTable();
-                        table.setTableName(seed.name());
-                        table.setTableNumber(seed.tableNumber());
-                        table.setCapacity(seed.capacity());
-                        table.setStatus(RestaurantTableStatus.AVAILABLE);
-                        table.setQrCode(qrCodeService.generateRandomQrCode());
-                        table.setCreatedAt(now);
-                        table.setUpdatedAt(now);
-                        return table;
-                    })
-                    .toList();
+            List<RestaurantTable> toSave = new ArrayList<>();
+            for (int i = 0; i < TABLE_SEEDS.size(); i++) {
+                TableSeed seed = TABLE_SEEDS.get(i);
+                if (existingNumbers.contains(seed.tableNumber())) continue;
+
+                RestaurantTable table = new RestaurantTable();
+                table.setTableName(seed.name());
+                table.setTableNumber(seed.tableNumber());
+                table.setCapacity(seed.capacity());
+                table.setStatus(RestaurantTableStatus.AVAILABLE);
+                table.setQrCode(qrCodeService.generateRandomQrCode());
+                table.setCreatedAt(now);
+                table.setUpdatedAt(now);
+
+                if (!waiters.isEmpty())  table.setWaiter(waiters.get(i % waiters.size()));
+                if (!cashiers.isEmpty()) table.setCashier(cashiers.get(i % cashiers.size()));
+
+                toSave.add(table);
+            }
 
             if (!toSave.isEmpty()) {
                 tableRepository.saveAll(toSave);
 
                 StringBuilder summary = new StringBuilder();
                 toSave.forEach(t -> summary.append(String.format(
-                        "\n   -> " + Ansi.CYAN + "[No. %d]" + Ansi.RESET + " %s (Cap: %d) | QR: " + Ansi.YELLOW + "%s" + Ansi.RESET, 
-                        t.getTableNumber(), t.getTableName(), t.getCapacity(), t.getQrCode())));
+                        "\n   -> " + Ansi.CYAN + "[No. %d]" + Ansi.RESET + " %s (Cap: %d) | QR: " + Ansi.YELLOW + "%s" + Ansi.RESET +
+                        " | Waiter: " + Ansi.CYAN + "%s" + Ansi.RESET + " | Cashier: " + Ansi.CYAN + "%s" + Ansi.RESET,
+                        t.getTableNumber(),
+                        t.getTableName(),
+                        t.getCapacity(),
+                        t.getQrCode(),
+                        t.getWaiter()  != null ? t.getWaiter().getFirstName()  + " " + t.getWaiter().getLastName()  : "None",
+                        t.getCashier() != null ? t.getCashier().getFirstName() + " " + t.getCashier().getLastName() : "None"
+                )));
 
                 log.info("""
                     
@@ -107,6 +127,8 @@ public class RestaurantTableDataInitializer {
     @Order(7)
     CommandLineRunner seedRooms() {
         return args -> {
+            List<Account> cashiers = accountRepository.findByRole(Role.ROLE_CASHIER);
+
             Set<String> existingRoomNumbers = new HashSet<>(
                     roomRepository.findExistingRoomNumbers(
                             ROOM_SEEDS.stream()
@@ -117,27 +139,36 @@ public class RestaurantTableDataInitializer {
 
             Instant now = Instant.now();
 
-            List<Room> toSave = ROOM_SEEDS.stream()
-                    .filter(seed -> !existingRoomNumbers.contains(seed.roomNumber()))
-                    .map(seed -> {
-                        Room room = new Room();
-                        room.setRoomNumber(seed.roomNumber());
-                        room.setFloor(seed.floor());
-                        room.setStatus(RoomStatus.AVAILABLE);
-                        room.setQrCode(qrCodeService.generateRandomQrCode());
-                        room.setCreatedAt(now);
-                        room.setUpdatedAt(now);
-                        return room;
-                    })
-                    .toList();
+            List<Room> toSave = new ArrayList<>();
+            for (int i = 0; i < ROOM_SEEDS.size(); i++) {
+                RoomSeed seed = ROOM_SEEDS.get(i);
+                if (existingRoomNumbers.contains(seed.roomNumber())) continue;
+
+                Room room = new Room();
+                room.setRoomNumber(seed.roomNumber());
+                room.setFloor(seed.floor());
+                room.setStatus(RoomStatus.AVAILABLE);
+                room.setQrCode(qrCodeService.generateRandomQrCode());
+                room.setCreatedAt(now);
+                room.setUpdatedAt(now);
+
+                if (!cashiers.isEmpty()) room.setCashier(cashiers.get(i % cashiers.size()));
+
+                toSave.add(room);
+            }
 
             if (!toSave.isEmpty()) {
                 roomRepository.saveAll(toSave);
 
                 StringBuilder summary = new StringBuilder();
                 toSave.forEach(r -> summary.append(String.format(
-                        "\n   -> " + Ansi.CYAN + "Room %s" + Ansi.RESET + " (Floor %d) | QR: " + Ansi.YELLOW + "%s" + Ansi.RESET, 
-                        r.getRoomNumber(), r.getFloor(), r.getQrCode())));
+                        "\n   -> " + Ansi.CYAN + "Room %s" + Ansi.RESET + " (Floor %d) | QR: " + Ansi.YELLOW + "%s" + Ansi.RESET +
+                        " | Cashier: " + Ansi.CYAN + "%s" + Ansi.RESET,
+                        r.getRoomNumber(),
+                        r.getFloor(),
+                        r.getQrCode(),
+                        r.getCashier() != null ? r.getCashier().getFirstName() + " " + r.getCashier().getLastName() : "None"
+                )));
 
                 log.info("""
                     
@@ -158,11 +189,10 @@ public class RestaurantTableDataInitializer {
 
     private record RoomSeed(String roomNumber, int floor) {}
 
-    // Inline utility class to handle ANSI coloring parameters dynamically
     private static class Ansi {
-        private static final String RESET = "\u001B[0m";
-        private static final String GREEN = "\u001B[32m";
-        private static final String CYAN = "\u001B[36m";
+        private static final String RESET  = "\u001B[0m";
+        private static final String GREEN  = "\u001B[32m";
+        private static final String CYAN   = "\u001B[36m";
         private static final String YELLOW = "\u001B[33m";
     }
 }
