@@ -32,12 +32,12 @@ public class CustomerService {
 
         // 1. Try find by phone (preferred in restaurants)
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
-            customer = customerRepository.findByPhoneNumber(request.getPhoneNumber().trim());
+            customer = customerRepository.findByPhoneNumber(request.getPhoneNumber().trim()).orElse(null);
         }
 
         // 2. Fallback to email (optional)
         if (customer == null && request.getEmail() != null && !request.getEmail().isBlank()) {
-            customer = customerRepository.findByEmail(request.getEmail().trim());
+            customer = customerRepository.findByEmail(request.getEmail().trim()).orElse(null);
         }
 
         // 3. Create new customer if none found
@@ -148,7 +148,7 @@ public class CustomerService {
     // --- Private Business Custom Assertions ---
 
     private void validateUniquePhoneOnUpdate(String phoneNumber, Long id) {
-        Customer customerByPhone = customerRepository.findByPhoneNumber(phoneNumber);
+        Customer customerByPhone = customerRepository.findByPhoneNumber(phoneNumber).orElse(null);
         if (customerByPhone != null && !customerByPhone.getId().equals(id)) {
             throw new BadRequestException("Phone already exists");
         }

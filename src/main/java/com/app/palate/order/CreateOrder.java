@@ -246,8 +246,7 @@ public class CreateOrder {
 
                 if (phone != null && !phone.isBlank()) {
 
-                        Customer existing = customerRepository.findByPhoneNumber(
-                                        phone);
+                        Customer existing = customerRepository.findByPhoneNumber(phone).orElse(null);
 
                         if (existing != null) {
 

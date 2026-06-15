@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {   
 
-    Customer findByEmail(String email);
+    Optional<Customer> findByEmail(String email);
 
     Optional<Customer> findByPhoneNumber(String phoneNumber);
 
