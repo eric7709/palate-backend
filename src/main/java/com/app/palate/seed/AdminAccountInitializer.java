@@ -22,7 +22,7 @@ public class AdminAccountInitializer {
     @Order(1)
     CommandLineRunner seedAdminAccount() {
         return args -> {
-            final String adminEmail = "admin@palate.com";
+            final String adminEmail = "admin@safron.com";
 
             accountRepository.findByEmail(adminEmail)
                     .ifPresentOrElse(

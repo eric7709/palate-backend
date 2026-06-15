@@ -36,6 +36,8 @@ public interface RestaurantTableRepository
     @Query("SELECT t.tableName FROM RestaurantTable t WHERE t.tableName IN :names")
     List<String> findExistingNames(@Param("names") List<String> names);
 
+    Optional<RestaurantTable> findByQrCode(String qrCode);
+
     @Query("SELECT t.tableNumber FROM RestaurantTable t WHERE t.tableNumber IN :numbers")
     List<Integer> findExistingNumbers(@Param("numbers") List<Integer> numbers);
 

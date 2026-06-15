@@ -27,10 +27,12 @@ public class OrderResponseDTO {
     private String virtualAccountNumber;
     private String virtualBankName;
     private String monnifyReference;
+    
     // Nested Grouped Data
     private UserSummaryDTO waiter;
     private UserSummaryDTO cashier;
     private CustomerSummaryDTO customer;
+    private RoomSummaryDTO room; // <-- Swapped to dedicated Room DTO
     private TableSummaryDTO table;
     private List<OrderItemResponse> items;
 
@@ -53,6 +55,17 @@ public class OrderResponseDTO {
         private Long id;
         private String name;
         private String title;
+    }
+
+    // New dedicated summary structure matching your Room entity
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RoomSummaryDTO {
+        private Long id;
+        private String roomNumber;
+        private Integer floor;
     }
 
     @Getter
@@ -94,9 +107,9 @@ public class OrderResponseDTO {
         dto.setTotal(order.getTotal());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
-        dto.setVirtualAccountNumber(order.getVirtualAccountNumber()); // add this
-        dto.setVirtualBankName(order.getVirtualBankName()); // add this
-        dto.setMonnifyReference(order.getMonnifyReference()); // add this
+        dto.setVirtualAccountNumber(order.getVirtualAccountNumber()); 
+        dto.setVirtualBankName(order.getVirtualBankName()); 
+        dto.setMonnifyReference(order.getMonnifyReference()); 
         dto.setItems(mapToOrderItem(order.getItems()));
 
         // Map Customer Group
@@ -105,6 +118,14 @@ public class OrderResponseDTO {
                     order.getCustomer().getId(),
                     order.getCustomer().getName(),
                     order.getCustomer().getTitle()));
+        }
+
+        // Map Room Group cleanly with its matching exact field mappings
+        if (order.getRoom() != null) {
+            dto.setRoom(new RoomSummaryDTO(
+                    order.getRoom().getId(),
+                    order.getRoom().getRoomNumber(),
+                    order.getRoom().getFloor()));
         }
 
         // Map Table Group

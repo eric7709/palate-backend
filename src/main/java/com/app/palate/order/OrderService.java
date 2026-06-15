@@ -79,11 +79,11 @@ public class OrderService {
     // GET ALL ORDERS (SPECIFICATION)
     // ==========================
     public OrderPageResponse getAllOrders(OrderFilterDTO filter) {
-        System.out.println("DEBUGGING ORDER FILTERS: " + filter.toString());
+
         ValidationUtils.requireNonNull(filter, "Filter parameters");
 
-        // 1️⃣ Sorting and Pagination
         String sortBy = filter.sortBy();
+
         if (sortBy == null || !ALLOWED_SORT_FIELDS.contains(sortBy)) {
             sortBy = "createdAt";
         }
@@ -94,16 +94,19 @@ public class OrderService {
 
         int page = filter.page() != null ? filter.page() : 0;
         int size = filter.size() != null ? filter.size() : 30;
+
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // 2️⃣ Date handling (Lagos)
         ZoneId lagos = ZoneId.of("Africa/Lagos");
 
         Instant startInstant = filter.startDate() != null
                 ? filter.startDate().atStartOfDay(lagos).toInstant()
                 : null;
+
         Instant endInstant = filter.endDate() != null
-                ? filter.endDate().plusDays(1).atStartOfDay(lagos).toInstant()
+                ? filter.endDate().plusDays(1)
+                        .atStartOfDay(lagos)
+                        .toInstant()
                 : null;
 
         Specification<Order> listSpec = OrderSpecification.filter(
@@ -111,6 +114,7 @@ public class OrderService {
                 filter.waiterId(),
                 filter.cashierId(),
                 filter.tableId(),
+                filter.roomId(),
                 filter.minTotal(),
                 filter.maxTotal(),
                 startInstant,
@@ -118,17 +122,28 @@ public class OrderService {
                 filter.search());
 
         Specification<Order> countSpec = OrderSpecification.filter(
-                null, null, filter.cashierId(), null, null, null,
-                startInstant, endInstant, filter.search());
+                null,
+                null,
+                filter.cashierId(),
+                null,
+                filter.roomId(),
+                null,
+                null,
+                startInstant,
+                endInstant,
+                filter.search());
 
         validateSpecifications(listSpec, countSpec);
 
         Page<Order> ordersPage = orderRepository.findAll(listSpec, pageable);
 
         List<Order> ordersForCounts = orderRepository.findAll(countSpec);
+
         OrderStatusCounts statusCounts = buildStatusCountsFromEntities(ordersForCounts);
 
-        return new OrderPageResponse(ordersPage.map(OrderResponseDTO::mapToResponse), statusCounts);
+        return new OrderPageResponse(
+                ordersPage.map(OrderResponseDTO::mapToResponse),
+                statusCounts);
     }
 
     public long getActiveOrdersCount() {

@@ -31,6 +31,8 @@ public class RestaurantTable extends BaseEntity {
 
     private Integer capacity;
 
+    private String qrCode;
+
     @Enumerated(EnumType.STRING)
     private RestaurantTableStatus status;
 

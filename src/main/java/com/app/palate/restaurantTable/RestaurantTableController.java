@@ -38,6 +38,13 @@ public class RestaurantTableController {
         return restaurantTableService.createTablesBulk(requests);
     }
 
+    @GetMapping("/qrcode/{token}")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantTableResponseDTO getTableByQrCode(@PathVariable String token) {
+        RestaurantTable table = restaurantTableService.getTableByQrCode(token);
+        return tableResponseMapper.mapToResponse(table);
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Page<RestaurantTableResponseDTO> getAllTables(

@@ -8,7 +8,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface MenuItemRepository extends JpaRepository<MenuItem, Long>, JpaSpecificationExecutor<MenuItem> {    boolean existsByNameIgnoreCase(String name);
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long>, JpaSpecificationExecutor<MenuItem> {
+    boolean existsByNameIgnoreCase(String name);
+
+    long countByStatus(MenuItemStatus status);
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 

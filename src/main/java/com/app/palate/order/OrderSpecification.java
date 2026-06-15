@@ -10,12 +10,13 @@ import com.app.palate.auth.Account;
 import com.app.palate.menuItem.MenuItem;
 import com.app.palate.orderItem.OrderItem;
 import com.app.palate.restaurantTable.RestaurantTable;
+import com.app.palate.room.Room;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Subquery;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class OrderSpecification {
 
@@ -24,102 +25,237 @@ public class OrderSpecification {
             Long waiterId,
             Long cashierId,
             Long tableId,
+            Long roomId,
             Double minTotal,
             Double maxTotal,
-            Instant startDate,  
+            Instant startDate,
             Instant endDate,
             String search) {
 
         return (root, query, cb) -> {
 
-            // 1. Create the list instead of a single predicate variable
-            List <Predicate> predicates = new ArrayList<>();
+            List<Predicate> predicates = new ArrayList<>();
+
+            // =========================
+            // Status
+            // =========================
 
             if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status));
+                predicates.add(
+                        cb.equal(root.get("status"), status));
             }
+
+            // =========================
+            // Waiter
+            // =========================
 
             if (waiterId != null) {
-                predicates.add(cb.equal(root.get("waiter").get("id"), waiterId));
+                predicates.add(
+                        cb.equal(
+                                root.get("waiter").get("id"),
+                                waiterId));
             }
+
+            // =========================
+            // Cashier
+            // =========================
 
             if (cashierId != null) {
-                predicates.add(cb.equal(root.get("cashier").get("id"), cashierId));
+                predicates.add(
+                        cb.equal(
+                                root.get("cashier").get("id"),
+                                cashierId));
             }
+
+            // =========================
+            // Table
+            // =========================
 
             if (tableId != null) {
-                predicates.add(cb.equal(root.get("table").get("id"), tableId));
+                predicates.add(
+                        cb.equal(
+                                root.get("table").get("id"),
+                                tableId));
             }
 
+            // =========================
+            // Room
+            // =========================
+
+            if (roomId != null) {
+                predicates.add(
+                        cb.equal(
+                                root.get("room").get("id"),
+                                roomId));
+            }
+
+            // =========================
+            // Total Range
+            // =========================
+
             if (minTotal != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("total"), minTotal));
+                predicates.add(
+                        cb.greaterThanOrEqualTo(
+                                root.get("total"),
+                                minTotal));
             }
 
             if (maxTotal != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("total"), maxTotal));
+                predicates.add(
+                        cb.lessThanOrEqualTo(
+                                root.get("total"),
+                                maxTotal));
             }
 
+            // =========================
+            // Date Range
+            // =========================
+
             if (startDate != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), startDate));
+                predicates.add(
+                        cb.greaterThanOrEqualTo(
+                                root.get("createdAt"),
+                                startDate));
             }
 
             if (endDate != null) {
-                predicates.add(cb.lessThan(root.get("createdAt"), endDate));
+                predicates.add(
+                        cb.lessThan(
+                                root.get("createdAt"),
+                                endDate));
             }
+
+            // =========================
+            // Search
+            // =========================
 
             if (search != null && !search.isBlank()) {
-                String term = "%" + search.toLowerCase() + "%";
 
-                Predicate invoiceLike = cb.like(
-                        cb.lower(root.get("invoiceNumber")), term);
+                String term =
+                        "%" + search.toLowerCase().trim() + "%";
 
-                Join<Order, Object> customerJoin = root.join("customer", JoinType.LEFT);
-                Predicate customerLike = cb.like(
-                        cb.lower(customerJoin.get("name")), term);
+                Predicate invoiceLike =
+                        cb.like(
+                                cb.lower(
+                                        root.get("invoiceNumber")),
+                                term);
 
-                Join<Order, Account> waiterJoin = root.join("waiter", JoinType.LEFT);
-                Predicate waiterLike = cb.like(
-                        cb.lower(cb.concat(
-                                cb.concat(waiterJoin.get("firstName"), " "),
-                                waiterJoin.get("lastName"))),
-                        term);
+                Join<Order, Object> customerJoin =
+                        root.join("customer", JoinType.LEFT);
 
-                Join<Order, Account> cashierJoin = root.join("cashier", JoinType.LEFT);
-                Predicate cashierLike = cb.like(
-                        cb.lower(cb.concat(
-                                cb.concat(cashierJoin.get("firstName"), " "),
-                                cashierJoin.get("lastName"))),
-                        term);
+                Predicate customerLike =
+                        cb.like(
+                                cb.lower(
+                                        customerJoin.get("name")),
+                                term);
 
-                Join<Order, RestaurantTable> tableJoin = root.join("table", JoinType.LEFT);
-                Predicate tableNameLike = cb.like(
-                        cb.lower(tableJoin.get("tableName")), term);
-                Predicate tableNumberLike = cb.like(
-                        cb.lower(tableJoin.get("tableNumber").as(String.class)), term);
-                Predicate tableLike = cb.or(tableNameLike, tableNumberLike);
+                Join<Order, Account> waiterJoin =
+                        root.join("waiter", JoinType.LEFT);
 
-                Subquery<Long> itemSubquery = query.subquery(Long.class);
-                Root<Order> subRoot = itemSubquery.from(Order.class);
-                Join<Order, OrderItem> subItems = subRoot.join("items", JoinType.LEFT);
-                Join<OrderItem, MenuItem> subMenuItem = subItems.join("menuItem", JoinType.LEFT);
-                itemSubquery.select(cb.literal(1L))
+                Predicate waiterLike =
+                        cb.like(
+                                cb.lower(
+                                        cb.concat(
+                                                cb.concat(
+                                                        waiterJoin.get("firstName"),
+                                                        " "),
+                                                waiterJoin.get("lastName"))),
+                                term);
+
+                Join<Order, Account> cashierJoin =
+                        root.join("cashier", JoinType.LEFT);
+
+                Predicate cashierLike =
+                        cb.like(
+                                cb.lower(
+                                        cb.concat(
+                                                cb.concat(
+                                                        cashierJoin.get("firstName"),
+                                                        " "),
+                                                cashierJoin.get("lastName"))),
+                                term);
+
+                Join<Order, RestaurantTable> tableJoin =
+                        root.join("table", JoinType.LEFT);
+
+                Predicate tableNameLike =
+                        cb.like(
+                                cb.lower(
+                                        tableJoin.get("tableName")),
+                                term);
+
+                Predicate tableNumberLike =
+                        cb.like(
+                                cb.lower(
+                                        tableJoin.get("tableNumber")
+                                                .as(String.class)),
+                                term);
+
+                Predicate tableLike =
+                        cb.or(
+                                tableNameLike,
+                                tableNumberLike);
+
+                Join<Order, Room> roomJoin =
+                        root.join("room", JoinType.LEFT);
+
+                Predicate roomNumberLike =
+                        cb.like(
+                                cb.lower(
+                                        roomJoin.get("roomNumber")),
+                                term);
+
+                Predicate floorLike =
+                        cb.like(
+                                cb.lower(
+                                        roomJoin.get("floor")
+                                                .as(String.class)),
+                                term);
+
+                Predicate roomLike =
+                        cb.or(
+                                roomNumberLike,
+                                floorLike);
+
+                Subquery<Long> itemSubquery =
+                        query.subquery(Long.class);
+
+                Root<Order> subRoot =
+                        itemSubquery.from(Order.class);
+
+                Join<Order, OrderItem> subItems =
+                        subRoot.join("items", JoinType.LEFT);
+
+                Join<OrderItem, MenuItem> subMenuItem =
+                        subItems.join("menuItem", JoinType.LEFT);
+
+                itemSubquery
+                        .select(cb.literal(1L))
                         .where(
-                                cb.equal(subRoot.get("id"), root.get("id")),
-                                cb.like(cb.lower(subMenuItem.get("name")), term));
-                Predicate menuItemLike = cb.exists(itemSubquery);
+                                cb.equal(
+                                        subRoot.get("id"),
+                                        root.get("id")),
+                                cb.like(
+                                        cb.lower(
+                                                subMenuItem.get("name")),
+                                        term));
 
-                // 2. Add the entire OR search block as one single predicate into the list
-                predicates.add(cb.or(
-                        invoiceLike,
-                        customerLike,
-                        waiterLike,
-                        cashierLike,
-                        tableLike,
-                        menuItemLike));
+                Predicate menuItemLike =
+                        cb.exists(itemSubquery);
+
+                predicates.add(
+                        cb.or(
+                                invoiceLike,
+                                customerLike,
+                                waiterLike,
+                                cashierLike,
+                                tableLike,
+                                roomLike,
+                                menuItemLike));
             }
 
-            // 3. Combine everything at once at the end
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return cb.and(
+                    predicates.toArray(new Predicate[0]));
         };
     }
 }

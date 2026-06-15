@@ -415,4 +415,61 @@ public interface AnalyticsRepository extends JpaRepository<Order, Long> {
                          ORDER BY CAST(created_at AS date)
                      """, nativeQuery = true)
        List<Object[]> revenueOverTime(@Param("from") Instant from, @Param("to") Instant to);
+
+       // ─── TOP ROOMS BY SALES ─────────────────────────────────────────────────
+       @Query("""
+                         SELECT o.room.id,
+                                o.room.roomNumber,
+                                SUM(o.total),
+                                COUNT(o)
+                         FROM Order o
+                         WHERE o.room IS NOT NULL AND o.status = 'PAID'
+                           AND o.createdAt BETWEEN :from AND :to
+                         GROUP BY o.room.id, o.room.roomNumber
+                         ORDER BY SUM(o.total) DESC
+                     """)
+       List<Object[]> topRoomsBySales(@Param("from") Instant from, @Param("to") Instant to);
+
+       // ─── TOP ROOMS BY COUNT ─────────────────────────────────────────────────
+       @Query("""
+                         SELECT o.room.id,
+                                o.room.roomNumber,
+                                SUM(o.total),
+                                COUNT(o)
+                         FROM Order o
+                         WHERE o.room IS NOT NULL AND o.status = 'PAID'
+                           AND o.createdAt BETWEEN :from AND :to
+                         GROUP BY o.room.id, o.room.roomNumber
+                         ORDER BY COUNT(o) DESC
+                     """)
+       List<Object[]> topRoomsByCount(@Param("from") Instant from, @Param("to") Instant to);
+
+       // ─── LEAST ROOMS BY SALES ───────────────────────────────────────────────
+       @Query("""
+                         SELECT o.room.id,
+                                o.room.roomNumber,
+                                SUM(o.total),
+                                COUNT(o)
+                         FROM Order o
+                         WHERE o.room IS NOT NULL AND o.status = 'PAID'
+                           AND o.createdAt BETWEEN :from AND :to
+                         GROUP BY o.room.id, o.room.roomNumber
+                         ORDER BY SUM(o.total) ASC
+                     """)
+       List<Object[]> leastRoomsBySales(@Param("from") Instant from, @Param("to") Instant to);
+
+       // ─── LEAST ROOMS BY COUNT ───────────────────────────────────────────────
+       @Query("""
+                         SELECT o.room.id,
+                                o.room.roomNumber,
+                                SUM(o.total),
+                                COUNT(o)
+                         FROM Order o
+                         WHERE o.room IS NOT NULL AND o.status = 'PAID'
+                           AND o.createdAt BETWEEN :from AND :to
+                         GROUP BY o.room.id, o.room.roomNumber
+                         ORDER BY COUNT(o) ASC
+                     """)
+       List<Object[]> leastRoomsByCount(@Param("from") Instant from, @Param("to") Instant to);
+
 }

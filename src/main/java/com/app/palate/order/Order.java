@@ -6,6 +6,7 @@ import com.app.palate.auth.Account;
 import com.app.palate.customer.Customer;
 import com.app.palate.orderItem.OrderItem;
 import com.app.palate.restaurantTable.RestaurantTable;
+import com.app.palate.room.Room;
 import com.app.palate.utils.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -53,6 +54,11 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "table_id", foreignKey = @ForeignKey(name = "fk_order_table"), nullable = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private RestaurantTable table;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", foreignKey = @ForeignKey(name = "fk_order_room"), nullable = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private Room room;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", foreignKey = @ForeignKey(name = "fk_order_customer"), nullable = true)

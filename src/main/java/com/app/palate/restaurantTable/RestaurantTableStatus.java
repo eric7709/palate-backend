@@ -4,5 +4,6 @@ public enum RestaurantTableStatus {
     AVAILABLE,
     OCCUPIED,
     RESERVED,
-    MAINTENANCE
+    MAINTENANCE,
+    UNAVAILABLE
 }

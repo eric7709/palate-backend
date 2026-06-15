@@ -13,6 +13,7 @@ public class RestaurantTableResponseDTO {
     private Integer tableNumber;
     private String status;
     private Integer capacity;
+    private String qrCode; // <-- Added field
     private String waiterName;
     private Long waiterId;
     private String cashierName;

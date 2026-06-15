@@ -24,7 +24,7 @@ public class AnalyticsController {
      */
     @GetMapping("/summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<AnalyticsSummaryDTO> getSummary(
+    public ResponseEntity<AnalyticsSummaryByDTO> getSummary(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "10") int limit
@@ -42,7 +42,7 @@ public class AnalyticsController {
      */
     @PostMapping("/summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<AnalyticsSummaryDTO> getSummaryPost(
+    public ResponseEntity<AnalyticsSummaryByDTO> getSummaryPost(
             @Valid @RequestBody AnalyticsRequestDTO request
     ) {
         if (request.getFrom().isAfter(request.getTo())) {

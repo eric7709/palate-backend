@@ -13,9 +13,8 @@ public interface RestaurantTableResponseMapper {
     @Mapping(target = "cashierName", source = "cashier", qualifiedByName = "mapFullName")
     RestaurantTableResponseDTO mapToResponse(RestaurantTable table);
 
-    // Named custom mapping method that safely builds the "First Last" name string
     @Named("mapFullName")
-    default String mapFullName(com.app.palate.auth.Account account) { // Swap 'Account' with your actual User/Staff model if named differently
+    default String mapFullName(com.app.palate.auth.Account account) {
         if (account == null) {
             return null;
         }

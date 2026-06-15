@@ -32,6 +32,7 @@ public class OrderController {
             @RequestParam(required = false) Long waiterId,
             @RequestParam(required = false) Long cashierId,
             @RequestParam(required = false) Long tableId,
+            @RequestParam(required = false) Long roomId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Double minTotal,
             @RequestParam(required = false) Double maxTotal,
@@ -43,8 +44,20 @@ public class OrderController {
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
         OrderFilterDTO filter = new OrderFilterDTO(
-                status, waiterId, cashierId, tableId, search,
-                minTotal, maxTotal, startDate, endDate, page, size, sortBy, sortDirection);
+                status,
+                waiterId,
+                cashierId,
+                tableId,
+                roomId,
+                search,
+                minTotal,
+                maxTotal,
+                startDate,
+                endDate,
+                page,
+                size,
+                sortBy,
+                sortDirection);
         return orderService.getAllOrders(filter);
     }
 
