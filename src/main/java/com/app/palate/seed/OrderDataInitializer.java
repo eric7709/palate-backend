@@ -23,9 +23,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,146 +46,119 @@ public class OrderDataInitializer {
     private final RestaurantTableRepository tableRepository;
     private final RoomRepository roomRepository;
 
-    private static final List<OrderSeed> ORDER_SEEDS = List.of(
+    // The complete exact list of your 100 structural menu combinations
+    private static final List<SeedRecipe> SEED_RECIPES = List.of(
             // --- Original 30 seeds ---
-            new OrderSeed(0, OrderStatus.PENDING, 0, -1, false, "Grilled Ribeye (Imported)", "French Fries",
-                    "Caesar Salad"),
-            new OrderSeed(0, OrderStatus.PREPARING, 1, -1, false, "Salmon Fillet", "Seasonal Vegetables"),
-            new OrderSeed(1, OrderStatus.COMPLETED, 2, -1, false, "Classic English Breakfast", "Oats", "Custard"),
-            new OrderSeed(1, OrderStatus.PAID, 3, -1, false, "Chicken Pizza", "Grilled Chicken Burger",
-                    "Classic Cheesecake"),
-            new OrderSeed(1, OrderStatus.PAID, -1, -1, true, "Shawarma - Chicken", "Shawarma - Beef"),
-            new OrderSeed(2, OrderStatus.COMPLETED, 4, -1, false, "Short Ribs", "Steamed Basmati Rice",
-                    "Seasonal Vegetables"),
-            new OrderSeed(2, OrderStatus.CANCELLED, 5, -1, false, "T-Bone Steak (Imported)", "Sweet Potato Fries"),
-            new OrderSeed(3, OrderStatus.PAID, -1, 0, false, "Safron Signature Breakfast", "Yellow Pap"),
-            new OrderSeed(3, OrderStatus.COMPLETED, 6, -1, false, "Seafood Platter", "Steamed Basmati Rice"),
-            new OrderSeed(4, OrderStatus.PAID, 7, -1, false, "Spaghetti Bolognese", "Garden Salad",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(5, OrderStatus.PAID, -1, 1, false, "Nigerian Breakfast", "Custard"),
-            new OrderSeed(5, OrderStatus.COMPLETED, 0, -1, false, "Cordon Blue", "Fried Plantain",
-                    "Special Safron Brownie"),
-            new OrderSeed(6, OrderStatus.PAID, 1, -1, false, "Signature Platter", "The Safron Smoky Jollof"),
-            new OrderSeed(7, OrderStatus.CANCELLED, 2, -1, false, "Prawn Thermidor", "Steamed Basmati Rice"),
-            new OrderSeed(8, OrderStatus.PAID, -1, -1, true, "Classic Club Sandwich", "French Fries"),
-            new OrderSeed(8, OrderStatus.COMPLETED, 3, -1, false, "Roast Chicken - Full Roast", "Coleslaw",
-                    "Fried Rice (Side)"),
-            new OrderSeed(9, OrderStatus.PAID, 4, -1, false, "Lamb Chops (Imported)", "Yam Fries", "Greek Salad"),
-            new OrderSeed(10, OrderStatus.COMPLETED, -1, 2, false, "Peppered Snails (Igbin)", "Chicken Pepper Soup"),
-            new OrderSeed(11, OrderStatus.PAID, 5, -1, false, "Mixed Platter", "Steamed Basmati Rice"),
-            new OrderSeed(12, OrderStatus.CANCELLED, 6, -1, false, "Seafood Pasta", "Garden Salad"),
-            new OrderSeed(14, OrderStatus.PAID, -1, 3, false, "Classic English Breakfast", "Waffles",
-                    "Strawberry Pancakes"),
-            new OrderSeed(16, OrderStatus.COMPLETED, 7, -1, false, "Grilled Croaker Fillet", "The Safron Smoky Jollof",
-                    "Seasonal Vegetables"),
-            new OrderSeed(18, OrderStatus.PAID, 0, -1, false, "Suya Pizza - Chicken", "Suya Pizza - Beef",
-                    "Extra Cheese (Pizza)"),
-            new OrderSeed(20, OrderStatus.PAID, -1, -1, true, "The Safron Special Burger", "Sweet Potato Fries",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(22, OrderStatus.COMPLETED, 1, -1, false, "Seafood Salad", "Prawns Tempura",
-                    "Classic Cheesecake"),
-            new OrderSeed(24, OrderStatus.CANCELLED, 2, -1, false, "Alfredo - Opt Prawn", "Avocado Salad"),
-            new OrderSeed(26, OrderStatus.PAID, -1, 0, false, "Full Breakfast Buffet", "Yellow Pap"),
-            new OrderSeed(28, OrderStatus.COMPLETED, 3, -1, false, "Short Ribs", "Coleslaw", "Event Cake - Chocolate"),
-            new OrderSeed(29, OrderStatus.PAID, 4, -1, false, "Mixed Platter", "Fried Rice (Side)",
-                    "Goat Meat Pepper Soup"),
-            new OrderSeed(30, OrderStatus.PAID, -1, -1, true, "Meat Pie", "Chicken Pie", "Doughnut"),
+            new SeedRecipe(OrderStatus.PENDING, 0, -1, false, List.of("Grilled Ribeye (Imported)", "French Fries", "Caesar Salad")),
+            new SeedRecipe(OrderStatus.PREPARING, 1, -1, false, List.of("Salmon Fillet", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.COMPLETED, 2, -1, false, List.of("Classic English Breakfast", "Oats", "Custard")),
+            new SeedRecipe(OrderStatus.PAID, 3, -1, false, List.of("Chicken Pizza", "Grilled Chicken Burger", "Classic Cheesecake")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Shawarma - Chicken", "Shawarma - Beef")),
+            new SeedRecipe(OrderStatus.COMPLETED, 4, -1, false, List.of("Short Ribs", "Steamed Basmati Rice", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.CANCELLED, 5, -1, false, List.of("T-Bone Steak (Imported)", "Sweet Potato Fries")),
+            new SeedRecipe(OrderStatus.PAID, -1, 0, false, List.of("Safron Signature Breakfast", "Yellow Pap")),
+            new SeedRecipe(OrderStatus.COMPLETED, 6, -1, false, List.of("Seafood Platter", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.PAID, 7, -1, false, List.of("Spaghetti Bolognese", "Garden Salad", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.PAID, -1, 1, false, List.of("Nigerian Breakfast", "Custard")),
+            new SeedRecipe(OrderStatus.COMPLETED, 0, -1, false, List.of("Cordon Blue", "Fried Plantain", "Special Safron Brownie")),
+            new SeedRecipe(OrderStatus.PAID, 1, -1, false, List.of("Signature Platter", "The Safron Smoky Jollof")),
+            new SeedRecipe(OrderStatus.CANCELLED, 2, -1, false, List.of("Prawn Thermidor", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Classic Club Sandwich", "French Fries")),
+            new SeedRecipe(OrderStatus.COMPLETED, 3, -1, false, List.of("Roast Chicken - Full Roast", "Coleslaw", "Fried Rice (Side)")),
+            new SeedRecipe(OrderStatus.PAID, 4, -1, false, List.of("Lamb Chops (Imported)", "Yam Fries", "Greek Salad")),
+            new SeedRecipe(OrderStatus.COMPLETED, -1, 2, false, List.of("Peppered Snails (Igbin)", "Chicken Pepper Soup")),
+            new SeedRecipe(OrderStatus.PAID, 5, -1, false, List.of("Mixed Platter", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.CANCELLED, 6, -1, false, List.of("Seafood Pasta", "Garden Salad")),
+            new SeedRecipe(OrderStatus.PAID, -1, 3, false, List.of("Classic English Breakfast", "Waffles", "Strawberry Pancakes")),
+            new SeedRecipe(OrderStatus.COMPLETED, 7, -1, false, List.of("Grilled Croaker Fillet", "The Safron Smoky Jollof", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.PAID, 0, -1, false, List.of("Suya Pizza - Chicken", "Suya Pizza - Beef", "Extra Cheese (Pizza)")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("The Safron Special Burger", "Sweet Potato Fries", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.COMPLETED, 1, -1, false, List.of("Seafood Salad", "Prawns Tempura", "Classic Cheesecake")),
+            new SeedRecipe(OrderStatus.CANCELLED, 2, -1, false, List.of("Alfredo - Opt Prawn", "Avocado Salad")),
+            new SeedRecipe(OrderStatus.PAID, -1, 0, false, List.of("Full Breakfast Buffet", "Yellow Pap")),
+            new SeedRecipe(OrderStatus.COMPLETED, 3, -1, false, List.of("Short Ribs", "Coleslaw", "Event Cake - Chocolate")),
+            new SeedRecipe(OrderStatus.PAID, 4, -1, false, List.of("Mixed Platter", "Fried Rice (Side)", "Goat Meat Pepper Soup")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Meat Pie", "Chicken Pie", "Doughnut")),
 
-            // --- 20 seeds (originally added to reach 50) ---
-            new OrderSeed(0, OrderStatus.PAID, 5, -1, false, "Prawn Thermidor", "Seasonal Vegetables",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(1, OrderStatus.COMPLETED, 6, -1, true, "Chicken Wings", "French Fries"),
-            new OrderSeed(2, OrderStatus.PREPARING, -1, 1, false, "Safron Signature Native Fried Rice",
-                    "The Safron Smoky Jollof"),
-            new OrderSeed(3, OrderStatus.PENDING, 7, -1, false, "Grilled Ribeye (Imported)", "French Fries"),
-            new OrderSeed(4, OrderStatus.PAID, -1, -1, true, "Shawarma - Mixed Chicken & Beef", "Doughnut"),
-            new OrderSeed(5, OrderStatus.COMPLETED, 0, -1, false, "Seafood Okro", "Steamed Basmati Rice"),
-            new OrderSeed(6, OrderStatus.CANCELLED, 1, -1, false, "T-Bone Steak (Imported)", "Sweet Potato Fries"),
-            new OrderSeed(7, OrderStatus.PAID, -1, 2, false, "Safron Signature Native Fried Rice",
-                    "Turkey Sauce (Protein)"),
-            new OrderSeed(8, OrderStatus.PREPARING, 2, -1, false, "Salmon Fillet", "Seasonal Vegetables"),
-            new OrderSeed(9, OrderStatus.COMPLETED, 3, -1, false, "Mixed Platter", "Greek Salad"),
-            new OrderSeed(10, OrderStatus.PAID, 4, -1, true, "Classic Club Sandwich", "Seasonal Vegetables"),
-            new OrderSeed(11, OrderStatus.CANCELLED, -1, 3, false, "Nigerian Breakfast", "Yellow Pap"),
-            new OrderSeed(13, OrderStatus.PAID, 5, -1, false, "Short Ribs", "Steamed Basmati Rice", "Coleslaw"),
-            new OrderSeed(15, OrderStatus.COMPLETED, 6, -1, false, "Suya Pizza - Beef", "Extra Cheese (Pizza)"),
-            new OrderSeed(17, OrderStatus.PAID, 7, -1, true, "The Safron Special Burger", "Yam Fries"),
-            new OrderSeed(19, OrderStatus.PREPARING, -1, 0, false, "Peppered Snails (Igbin)", "Chicken Wings"),
-            new OrderSeed(21, OrderStatus.COMPLETED, 0, -1, false, "Cordon Blue", "French Fries",
-                    "Event Cake - Red Velvet"),
-            new OrderSeed(23, OrderStatus.PAID, 1, -1, false, "Seafood Pasta", "Caesar Salad"),
-            new OrderSeed(25, OrderStatus.CANCELLED, 2, -1, false, "Prawns Tempura", "Avocado Salad"),
-            new OrderSeed(27, OrderStatus.PAID, -1, -1, true, "Chicken Pie", "Meat Pie", "Doughnut"),
+            // --- 20 seeds ---
+            new SeedRecipe(OrderStatus.PAID, 5, -1, false, List.of("Prawn Thermidor", "Seasonal Vegetables", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.COMPLETED, 6, -1, true, List.of("Chicken Wings", "French Fries")),
+            new SeedRecipe(OrderStatus.PREPARING, -1, 1, false, List.of("Safron Signature Native Fried Rice", "The Safron Smoky Jollof")),
+            new SeedRecipe(OrderStatus.PENDING, 7, -1, false, List.of("Grilled Ribeye (Imported)", "French Fries")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Shawarma - Mixed Chicken & Beef", "Doughnut")),
+            new SeedRecipe(OrderStatus.COMPLETED, 0, -1, false, List.of("Seafood Okro", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.CANCELLED, 1, -1, false, List.of("T-Bone Steak (Imported)", "Sweet Potato Fries")),
+            new SeedRecipe(OrderStatus.PAID, -1, 2, false, List.of("Safron Signature Native Fried Rice", "Turkey Sauce (Protein)")),
+            new SeedRecipe(OrderStatus.PREPARING, 2, -1, false, List.of("Salmon Fillet", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.COMPLETED, 3, -1, false, List.of("Mixed Platter", "Greek Salad")),
+            new SeedRecipe(OrderStatus.PAID, 4, -1, true, List.of("Classic Club Sandwich", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.CANCELLED, -1, 3, false, List.of("Nigerian Breakfast", "Yellow Pap")),
+            new SeedRecipe(OrderStatus.PAID, 5, -1, false, List.of("Short Ribs", "Steamed Basmati Rice", "Coleslaw")),
+            new SeedRecipe(OrderStatus.COMPLETED, 6, -1, false, List.of("Suya Pizza - Beef", "Extra Cheese (Pizza)")),
+            new SeedRecipe(OrderStatus.PAID, 7, -1, true, List.of("The Safron Special Burger", "Yam Fries")),
+            new SeedRecipe(OrderStatus.PREPARING, -1, 0, false, List.of("Peppered Snails (Igbin)", "Chicken Wings")),
+            new SeedRecipe(OrderStatus.COMPLETED, 0, -1, false, List.of("Cordon Blue", "French Fries", "Event Cake - Red Velvet")),
+            new SeedRecipe(OrderStatus.PAID, 1, -1, false, List.of("Seafood Pasta", "Caesar Salad")),
+            new SeedRecipe(OrderStatus.CANCELLED, 2, -1, false, List.of("Prawns Tempura", "Avocado Salad")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Chicken Pie", "Meat Pie", "Doughnut")),
 
-            // --- 50 additional seeds to reach 100 orders, spread across more days ---
-            new OrderSeed(0, OrderStatus.PAID, 2, -1, false, "Suya Pizza - Chicken", "Coleslaw"),
-            new OrderSeed(1, OrderStatus.PREPARING, 3, -1, false, "Grilled Croaker Fillet", "Seasonal Vegetables"),
-            new OrderSeed(2, OrderStatus.PAID, -1, -1, true, "Classic Club Sandwich", "Doughnut"),
-            new OrderSeed(3, OrderStatus.COMPLETED, 4, -1, false, "Seafood Platter", "Garden Salad",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(4, OrderStatus.PENDING, 5, -1, false, "Lamb Chops (Imported)", "Yam Fries"),
-            new OrderSeed(5, OrderStatus.PAID, -1, 1, false, "Safron Signature Breakfast", "Custard"),
-            new OrderSeed(6, OrderStatus.COMPLETED, 6, -1, false, "Signature Platter", "Steamed Basmati Rice",
-                    "Coleslaw"),
-            new OrderSeed(7, OrderStatus.CANCELLED, 7, -1, false, "Alfredo - Opt Prawn", "Garden Salad"),
-            new OrderSeed(8, OrderStatus.PAID, 0, -1, false, "Chicken Pizza", "Extra Cheese (Pizza)"),
-            new OrderSeed(9, OrderStatus.PAID, -1, -1, true, "Shawarma - Beef", "Shawarma - Chicken",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(10, OrderStatus.COMPLETED, 1, -1, false, "Roast Chicken - Full Roast", "Fried Rice (Side)"),
-            new OrderSeed(11, OrderStatus.PAID, 2, -1, false, "Mixed Platter", "Steamed Basmati Rice",
-                    "Goat Meat Pepper Soup"),
-            new OrderSeed(12, OrderStatus.PREPARING, -1, 2, false, "Nigerian Breakfast", "Yellow Pap"),
-            new OrderSeed(13, OrderStatus.COMPLETED, 3, -1, false, "Salmon Fillet", "Seasonal Vegetables",
-                    "Classic Cheesecake"),
-            new OrderSeed(14, OrderStatus.PAID, 4, -1, false, "T-Bone Steak (Imported)", "Sweet Potato Fries"),
-            new OrderSeed(15, OrderStatus.CANCELLED, 5, -1, false, "Seafood Pasta", "Avocado Salad"),
-            new OrderSeed(16, OrderStatus.PAID, -1, -1, true, "The Safron Special Burger", "French Fries", "Doughnut"),
-            new OrderSeed(17, OrderStatus.COMPLETED, 6, -1, false, "Short Ribs", "Steamed Basmati Rice"),
-            new OrderSeed(18, OrderStatus.PAID, 7, -1, false, "Grilled Chicken Burger", "Sweet Potato Fries"),
-            new OrderSeed(19, OrderStatus.PAID, -1, 3, false, "Full Breakfast Buffet", "Waffles"),
-            new OrderSeed(20, OrderStatus.COMPLETED, 0, -1, false, "Seafood Salad", "Prawns Tempura"),
-            new OrderSeed(21, OrderStatus.PREPARING, 1, -1, false, "Spaghetti Bolognese", "Garden Salad"),
-            new OrderSeed(22, OrderStatus.PAID, -1, -1, true, "Meat Pie", "Chicken Pie"),
-            new OrderSeed(23, OrderStatus.CANCELLED, 2, -1, false, "Prawn Thermidor", "Seasonal Vegetables"),
-            new OrderSeed(24, OrderStatus.PAID, 3, -1, false, "Cordon Blue", "Fried Plantain",
-                    "Special Safron Brownie"),
-            new OrderSeed(25, OrderStatus.COMPLETED, -1, 0, false, "Safron Signature Native Fried Rice",
-                    "The Safron Smoky Jollof"),
-            new OrderSeed(26, OrderStatus.PAID, 4, -1, false, "Suya Pizza - Beef", "Extra Cheese (Pizza)"),
-            new OrderSeed(27, OrderStatus.PAID, -1, -1, true, "Chicken Wings", "French Fries"),
-            new OrderSeed(28, OrderStatus.COMPLETED, 5, -1, false, "Grilled Ribeye (Imported)", "Caesar Salad",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(29, OrderStatus.PREPARING, 6, -1, false, "Peppered Snails (Igbin)", "Chicken Pepper Soup"),
-            new OrderSeed(31, OrderStatus.PAID, 7, -1, false, "Mixed Platter", "Steamed Basmati Rice"),
-            new OrderSeed(32, OrderStatus.COMPLETED, -1, 1, false, "Classic English Breakfast", "Oats", "Custard"),
-            new OrderSeed(33, OrderStatus.PAID, 0, -1, false, "Seafood Okro", "Steamed Basmati Rice"),
-            new OrderSeed(34, OrderStatus.CANCELLED, 1, -1, false, "Alfredo - Opt Prawn", "Avocado Salad"),
-            new OrderSeed(35, OrderStatus.PAID, -1, -1, true, "Shawarma - Mixed Chicken & Beef", "Doughnut"),
-            new OrderSeed(36, OrderStatus.COMPLETED, 2, -1, false, "Lamb Chops (Imported)", "Yam Fries", "Greek Salad"),
-            new OrderSeed(37, OrderStatus.PAID, 3, -1, false, "Safron Signature Native Fried Rice",
-                    "Turkey Sauce (Protein)"),
-            new OrderSeed(38, OrderStatus.PREPARING, -1, 2, false, "Safron Signature Breakfast", "Yellow Pap"),
-            new OrderSeed(39, OrderStatus.PAID, 4, -1, false, "Grilled Croaker Fillet", "The Safron Smoky Jollof",
-                    "Seasonal Vegetables"),
-            new OrderSeed(40, OrderStatus.COMPLETED, 5, -1, false, "Short Ribs", "Coleslaw", "Event Cake - Chocolate"),
-            new OrderSeed(41, OrderStatus.PAID, -1, -1, true, "Classic Club Sandwich", "French Fries",
-                    "Ice Cream (Classic)"),
-            new OrderSeed(42, OrderStatus.CANCELLED, 6, -1, false, "Seafood Pasta", "Garden Salad"),
-            new OrderSeed(43, OrderStatus.PAID, 7, -1, false, "Signature Platter", "The Safron Smoky Jollof"),
-            new OrderSeed(44, OrderStatus.COMPLETED, -1, 3, false, "Nigerian Breakfast", "Custard", "Waffles"),
-            new OrderSeed(45, OrderStatus.PAID, 0, -1, false, "Suya Pizza - Chicken", "Suya Pizza - Beef",
-                    "Extra Cheese (Pizza)"),
-            new OrderSeed(46, OrderStatus.PREPARING, 1, -1, false, "Salmon Fillet", "Seasonal Vegetables"),
-            new OrderSeed(47, OrderStatus.PAID, -1, -1, true, "The Safron Special Burger", "Sweet Potato Fries"),
-            new OrderSeed(48, OrderStatus.COMPLETED, 2, -1, false, "Seafood Platter", "Steamed Basmati Rice"),
-            new OrderSeed(49, OrderStatus.PAID, 3, -1, false, "Roast Chicken - Full Roast", "Fried Rice (Side)",
-                    "Classic Cheesecake"),
-            new OrderSeed(50, OrderStatus.CANCELLED, -1, 0, false, "T-Bone Steak (Imported)", "Sweet Potato Fries"));
+            // --- 50 additional seeds ---
+            new SeedRecipe(OrderStatus.PAID, 2, -1, false, List.of("Suya Pizza - Chicken", "Coleslaw")),
+            new SeedRecipe(OrderStatus.PREPARING, 3, -1, false, List.of("Grilled Croaker Fillet", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Classic Club Sandwich", "Doughnut")),
+            new SeedRecipe(OrderStatus.COMPLETED, 4, -1, false, List.of("Seafood Platter", "Garden Salad", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.PENDING, 5, -1, false, List.of("Lamb Chops (Imported)", "Yam Fries")),
+            new SeedRecipe(OrderStatus.PAID, -1, 1, false, List.of("Safron Signature Breakfast", "Custard")),
+            new SeedRecipe(OrderStatus.COMPLETED, 6, -1, false, List.of("Signature Platter", "Steamed Basmati Rice", "Coleslaw")),
+            new SeedRecipe(OrderStatus.CANCELLED, 7, -1, false, List.of("Alfredo - Opt Prawn", "Garden Salad")),
+            new SeedRecipe(OrderStatus.PAID, 0, -1, false, List.of("Chicken Pizza", "Extra Cheese (Pizza)")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Shawarma - Beef", "Shawarma - Chicken", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.COMPLETED, 1, -1, false, List.of("Roast Chicken - Full Roast", "Fried Rice (Side)")),
+            new SeedRecipe(OrderStatus.PAID, 2, -1, false, List.of("Mixed Platter", "Steamed Basmati Rice", "Goat Meat Pepper Soup")),
+            new SeedRecipe(OrderStatus.PREPARING, -1, 2, false, List.of("Nigerian Breakfast", "Yellow Pap")),
+            new SeedRecipe(OrderStatus.COMPLETED, 3, -1, false, List.of("Salmon Fillet", "Seasonal Vegetables", "Classic Cheesecake")),
+            new SeedRecipe(OrderStatus.PAID, 4, -1, false, List.of("T-Bone Steak (Imported)", "Sweet Potato Fries")),
+            new SeedRecipe(OrderStatus.CANCELLED, 5, -1, false, List.of("Seafood Pasta", "Avocado Salad")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("The Safron Special Burger", "French Fries", "Doughnut")),
+            new SeedRecipe(OrderStatus.COMPLETED, 6, -1, false, List.of("Short Ribs", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.PAID, 7, -1, false, List.of("Grilled Chicken Burger", "Sweet Potato Fries")),
+            new SeedRecipe(OrderStatus.PAID, -1, 3, false, List.of("Full Breakfast Buffet", "Waffles")),
+            new SeedRecipe(OrderStatus.COMPLETED, 0, -1, false, List.of("Seafood Salad", "Prawns Tempura")),
+            new SeedRecipe(OrderStatus.PREPARING, 1, -1, false, List.of("Spaghetti Bolognese", "Garden Salad")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Meat Pie", "Chicken Pie")),
+            new SeedRecipe(OrderStatus.CANCELLED, 2, -1, false, List.of("Prawn Thermidor", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.PAID, 3, -1, false, List.of("Cordon Blue", "Fried Plantain", "Special Safron Brownie")),
+            new SeedRecipe(OrderStatus.COMPLETED, -1, 0, false, List.of("Safron Signature Native Fried Rice", "The Safron Smoky Jollof")),
+            new SeedRecipe(OrderStatus.PAID, 4, -1, false, List.of("Suya Pizza - Beef", "Extra Cheese (Pizza)")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Chicken Wings", "French Fries")),
+            new SeedRecipe(OrderStatus.COMPLETED, 5, -1, false, List.of("Grilled Ribeye (Imported)", "Caesar Salad", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.PREPARING, 6, -1, false, List.of("Peppered Snails (Igbin)", "Chicken Pepper Soup")),
+            new SeedRecipe(OrderStatus.PAID, 7, -1, false, List.of("Mixed Platter", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.COMPLETED, -1, 1, false, List.of("Classic English Breakfast", "Oats", "Custard")),
+            new SeedRecipe(OrderStatus.PAID, 0, -1, false, List.of("Seafood Okro", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.CANCELLED, 1, -1, false, List.of("Alfredo - Opt Prawn", "Avocado Salad")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Shawarma - Mixed Chicken & Beef", "Doughnut")),
+            new SeedRecipe(OrderStatus.COMPLETED, 2, -1, false, List.of("Lamb Chops (Imported)", "Yam Fries", "Greek Salad")),
+            new SeedRecipe(OrderStatus.PAID, 3, -1, false, List.of("Safron Signature Native Fried Rice", "Turkey Sauce (Protein)")),
+            new SeedRecipe(OrderStatus.PREPARING, -1, 2, false, List.of("Safron Signature Breakfast", "Yellow Pap")),
+            new SeedRecipe(OrderStatus.PAID, 4, -1, false, List.of("Grilled Croaker Fillet", "The Safron Smoky Jollof", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.COMPLETED, 5, -1, false, List.of("Short Ribs", "Coleslaw", "Event Cake - Chocolate")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("Classic Club Sandwich", "French Fries", "Ice Cream (Classic)")),
+            new SeedRecipe(OrderStatus.CANCELLED, 6, -1, false, List.of("Seafood Pasta", "Garden Salad")),
+            new SeedRecipe(OrderStatus.PAID, 7, -1, false, List.of("Signature Platter", "The Safron Smoky Jollof")),
+            new SeedRecipe(OrderStatus.COMPLETED, -1, 3, false, List.of("Nigerian Breakfast", "Custard", "Waffles")),
+            new SeedRecipe(OrderStatus.PAID, 0, -1, false, List.of("Suya Pizza - Chicken", "Suya Pizza - Beef", "Extra Cheese (Pizza)")),
+            new SeedRecipe(OrderStatus.PREPARING, 1, -1, false, List.of("Salmon Fillet", "Seasonal Vegetables")),
+            new SeedRecipe(OrderStatus.PAID, -1, -1, true, List.of("The Safron Special Burger", "Sweet Potato Fries")),
+            new SeedRecipe(OrderStatus.COMPLETED, 2, -1, false, List.of("Seafood Platter", "Steamed Basmati Rice")),
+            new SeedRecipe(OrderStatus.PAID, 3, -1, false, List.of("Roast Chicken - Full Roast", "Fried Rice (Side)", "Classic Cheesecake")),
+            new SeedRecipe(OrderStatus.CANCELLED, -1, 0, false, List.of("T-Bone Steak (Imported)", "Sweet Potato Fries"))
+    );
 
     @Bean
     @org.springframework.core.annotation.Order(8)
     @Transactional
-    CommandLineRunner seedOrders() {
+    public CommandLineRunner seedOrders() {
         return args -> {
             long existingCount = orderRepository.count();
             if (existingCount > 0) {
@@ -196,77 +174,85 @@ public class OrderDataInitializer {
             List<Room> rooms = roomRepository.findAll();
 
             if (menuItems.isEmpty()) {
-                log.warn(
-                        "⚠️ Order seeding skipped: No menu items found. Ensure MenuItemSeeder (Order 4) ran successfully before this seeder (Order 8).");
+                log.warn("⚠️ Order seeding skipped: No menu items found.");
                 return;
             }
-            if (waiters.isEmpty() && cashiers.isEmpty()) {
-                log.warn(
-                        "⚠️ Order seeding warning: No waiters or cashiers found. Orders will be saved without staff assignments.");
+
+            ZoneId localZone = ZoneId.systemDefault();
+            LocalDate today = LocalDate.now(localZone);
+            
+            // Calculate last Monday dynamically
+            LocalDate lastMonday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            if (lastMonday.equals(today)) {
+                lastMonday = lastMonday.minusWeeks(1);
             }
-            if (tables.isEmpty() && rooms.isEmpty()) {
-                log.warn(
-                        "⚠️ Order seeding warning: No tables or rooms found. Orders will be saved without table/room assignments.");
-            }
+
+            long totalDays = ChronoUnit.DAYS.between(lastMonday, today) + 1;
+            log.info("🌱 Distributing {} precise seed profiles from last Monday ({}) to today ({}) [{} Days total]", 
+                    SEED_RECIPES.size(), lastMonday, today, totalDays);
 
             int saved = 0;
             int skippedItems = 0;
-            ZoneId localZone = ZoneId.systemDefault();
 
-            for (int i = 0; i < ORDER_SEEDS.size(); i++) {
-                OrderSeed seed = ORDER_SEEDS.get(i);
+            // Mathematical baseline: spread exactly 100 profiles evenly into day chunks
+            for (int i = 0; i < SEED_RECIPES.size(); i++) {
+                SeedRecipe recipe = SEED_RECIPES.get(i);
 
+                // Evenly split indices across total elapsed days
+                long operationalDayOffset = i % totalDays;
+                LocalDate targetDate = lastMonday.plusDays(operationalDayOffset);
+                ZonedDateTime baseTime = targetDate.atStartOfDay(localZone);
+
+                // Generate random operational rush windows based on entry index position
+                int hourOffset = switch (i % 3) {
+                    case 0 -> 8 + (i % 4);   // Morning window: 8 AM - 11 AM
+                    case 1 -> 12 + (i % 5);  // Mid-Day window: 12 PM - 4 PM
+                    default -> 17 + (i % 6); // Evening window: 5 PM - 10 PM
+                };
+                int minuteOffset = (i * 7) % 60;
+                int secondOffset = (i * 13) % 60;
+
+                ZonedDateTime zonedTimestamp = baseTime
+                        .plusHours(hourOffset)
+                        .plusMinutes(minuteOffset)
+                        .plusSeconds(secondOffset);
+
+                Instant timestamp = zonedTimestamp.toInstant();
+
+                // Safety fallback to prevent pushing future hours on the current execution day
+                if (targetDate.equals(today) && timestamp.isAfter(Instant.now())) {
+                    timestamp = Instant.now().minusSeconds((SEED_RECIPES.size() - i) * 30L);
+                }
+
+                // Entity mapping
                 Account waiter = waiters.isEmpty() ? null : waiters.get(i % waiters.size());
                 Account cashier = cashiers.isEmpty() ? null : cashiers.get(i % cashiers.size());
                 Customer customer = customers.isEmpty() ? null : customers.get(i % customers.size());
 
-                RestaurantTable table = (seed.tableIndex() >= 0 && seed.tableIndex() < tables.size())
-                        ? tables.get(seed.tableIndex())
-                        : null;
-                Room room = (seed.roomIndex() >= 0 && seed.roomIndex() < rooms.size())
-                        ? rooms.get(seed.roomIndex())
-                        : null;
+                RestaurantTable table = (recipe.tableIndex() >= 0 && recipe.tableIndex() < tables.size())
+                        ? tables.get(recipe.tableIndex()) : null;
+                Room room = (recipe.roomIndex() >= 0 && recipe.roomIndex() < rooms.size())
+                        ? rooms.get(recipe.roomIndex()) : null;
 
                 if (room != null) {
                     waiter = null;
                 }
 
-                ZonedDateTime baseTargetDate = ZonedDateTime.now(localZone)
-                        .minusDays(seed.daysAgo())
-                        .toLocalDate()
-                        .atStartOfDay(localZone);
-
-                int hourOffset = 8 + (i % 15);
-                int minuteOffset = (i * 7) % 60;
-                int secondOffset = (i * 13) % 60;
-
-                Instant timestamp = baseTargetDate
-                        .plusHours(hourOffset)
-                        .plusMinutes(minuteOffset)
-                        .plusSeconds(secondOffset)
-                        .toInstant();
-
-                if (seed.daysAgo() == 0 && timestamp.isAfter(Instant.now())) {
-                    timestamp = Instant.now().minusSeconds(i * 30L);
-                }
-
                 Order order = new Order();
                 order.setInvoiceNumber("INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-                order.setStatus(seed.status());
+                order.setStatus(recipe.status());
                 order.setWaiter(waiter);
                 order.setCashier(cashier);
                 order.setCustomer(customer);
                 order.setTable(table);
                 order.setRoom(room);
-                order.setTotal(0.0);
-                order.setQuantity(0);
+                order.setItems(new ArrayList<>());
                 order.setCreatedAt(timestamp);
                 order.setUpdatedAt(timestamp);
 
-                for (String itemName : seed.itemNames()) {
+                for (String itemName : recipe.itemNames()) {
                     MenuItem menuItem = findByName(menuItems, itemName);
                     if (menuItem == null) {
-                        log.warn("⚠️ MenuItem not found: '{}' (order seed #{}) — skipping item.", itemName, i);
                         skippedItems++;
                         continue;
                     }
@@ -274,14 +260,13 @@ public class OrderDataInitializer {
                     oi.setOrder(order);
                     oi.setMenuItem(menuItem);
                     oi.setQuantity(1);
-                    oi.setTakeOut(seed.takeOut());
+                    oi.setTakeOut(recipe.takeOut());
                     oi.setPrice(menuItem.getPrice());
                     order.getItems().add(oi);
                 }
 
                 if (order.getItems().isEmpty()) {
-                    log.warn("⚠️ Order seed #{} produced no valid items — skipping order entirely.", i);
-                    continue;
+                    continue; // Skip the order record if food links fail to resolve
                 }
 
                 double total = order.getItems().stream().mapToDouble(OrderItem::getPrice).sum();
@@ -294,11 +279,11 @@ public class OrderDataInitializer {
             }
 
             log.info("""
-
+                    
                     ================================================================
-                    🌱 DATABASE SEEDER: ORDERS GENERATED WITH SCATTERED TIMES
-                    Successfully seeded {} orders (skipped {} unresolved menu items)
-                    distributed across operational business hours.
+                    🌱 DATABASE SEEDER: COMPLETE DATA SYNCHRONIZATION FINISHED
+                    Successfully saved exactly {} active orders (skipped {} bad menu references)
+                    Timeline: Perfectly mapped from last Monday until today.
                     ================================================================
                     """, saved, skippedItems);
         };
@@ -311,12 +296,11 @@ public class OrderDataInitializer {
                 .orElse(null);
     }
 
-    private record OrderSeed(
-            int daysAgo,
+    private record SeedRecipe(
             OrderStatus status,
             int tableIndex,
             int roomIndex,
             boolean takeOut,
-            String... itemNames) {
+            List<String> itemNames) {
     }
 }

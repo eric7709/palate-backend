@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/palatedb
+    username: postgres
+    password: West5555
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  access-secret: w4QhK7fZ8v+2H1j0p5S6G3bV9nLxTqY4RkF0uJcM1sA=
+  refresh-secret: v7NqX1hP9dKzR4tB6sY3F8wL2mJ5cV0nHqT9eR1oGkM=
+
+monnify:
+  api:
+    key: MK_TEST_YFM6MTTHKW
+  secret:
+    key: QT6D23NPJXUC49MB990UV2CU9V7GL6GJ
+  contract:
+    code: 1327331077
