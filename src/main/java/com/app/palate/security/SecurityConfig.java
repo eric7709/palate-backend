@@ -112,6 +112,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/palate/rooms/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/palate/rooms/**").hasRole("ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/api/palate/notifications/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/palate/notifications/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/palate/notifications/**").hasRole("ADMIN")
+
                         // =========================
                         // ADDED: DASHBOARD METRICS
                         // =========================

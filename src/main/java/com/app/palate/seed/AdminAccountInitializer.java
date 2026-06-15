@@ -35,6 +35,7 @@ public class AdminAccountInitializer {
                                 admin.setPassword(passwordEncoder.encode("admin123"));
                                 admin.setStatus(AccountStatus.ACTIVE);
                                 admin.setRole(Role.ROLE_ADMIN);
+                                admin.setPhoneNumber("+23412345678");
                                 admin.setGender(Gender.MALE);
                                 accountRepository.save(admin);
                                 System.out.println("✅ Admin account created successfully");
