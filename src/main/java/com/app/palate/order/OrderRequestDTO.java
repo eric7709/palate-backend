@@ -22,6 +22,7 @@ public final class OrderRequestDTO {
     private final List<OrderItemDTO> items;
 
     private final Long customerId;
+    private final String note;
     private final String customerName;
     private final String customerPhoneNumber;
     private final String customerTitle;

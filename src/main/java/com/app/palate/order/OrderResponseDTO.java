@@ -27,12 +27,18 @@ public class OrderResponseDTO {
     private String virtualAccountNumber;
     private String virtualBankName;
     private String monnifyReference;
-    
+    private String note;
+
+    // Payment reconciliation fields
+    private Double paidAmount;
+    private Boolean isUnderpaid;
+    private Double remainingBalance;
+
     // Nested Grouped Data
     private UserSummaryDTO waiter;
     private UserSummaryDTO cashier;
     private CustomerSummaryDTO customer;
-    private RoomSummaryDTO room; // <-- Swapped to dedicated Room DTO
+    private RoomSummaryDTO room;
     private TableSummaryDTO table;
     private List<OrderItemResponse> items;
 
@@ -57,7 +63,6 @@ public class OrderResponseDTO {
         private String title;
     }
 
-    // New dedicated summary structure matching your Room entity
     @Getter
     @Setter
     @AllArgsConstructor
@@ -78,13 +83,10 @@ public class OrderResponseDTO {
         private String tableName;
     }
 
-    // --- MAPPING LOGIC ---
-
     public static List<OrderItemResponse> mapToOrderItem(List<OrderItem> items) {
         List<OrderItemResponse> response = new ArrayList<>();
         if (items == null)
             return response;
-
         for (OrderItem item : items) {
             response.add(new OrderItemResponse(
                     item.getId(),
@@ -99,7 +101,6 @@ public class OrderResponseDTO {
 
     public static OrderResponseDTO mapToResponse(Order order) {
         OrderResponseDTO dto = new OrderResponseDTO();
-
         dto.setId(order.getId());
         dto.setInvoiceNumber(order.getInvoiceNumber());
         dto.setStatus(order.getStatus());
@@ -107,47 +108,43 @@ public class OrderResponseDTO {
         dto.setTotal(order.getTotal());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
-        dto.setVirtualAccountNumber(order.getVirtualAccountNumber()); 
-        dto.setVirtualBankName(order.getVirtualBankName()); 
-        dto.setMonnifyReference(order.getMonnifyReference()); 
+        dto.setVirtualAccountNumber(order.getVirtualAccountNumber());
+        dto.setVirtualBankName(order.getVirtualBankName());
+        dto.setNote(order.getNote());
+        dto.setMonnifyReference(order.getMonnifyReference());
         dto.setItems(mapToOrderItem(order.getItems()));
 
-        // Map Customer Group
+        // Payment reconciliation fields
+        dto.setPaidAmount(order.getPaidAmount());
+        dto.setIsUnderpaid(order.getIsUnderpaid());
+        dto.setRemainingBalance(order.getRemainingBalance());
+
         if (order.getCustomer() != null) {
             dto.setCustomer(new CustomerSummaryDTO(
                     order.getCustomer().getId(),
                     order.getCustomer().getName(),
                     order.getCustomer().getTitle()));
         }
-
-        // Map Room Group cleanly with its matching exact field mappings
         if (order.getRoom() != null) {
             dto.setRoom(new RoomSummaryDTO(
                     order.getRoom().getId(),
                     order.getRoom().getRoomNumber(),
                     order.getRoom().getFloor()));
         }
-
-        // Map Table Group
         if (order.getTable() != null) {
             dto.setTable(new TableSummaryDTO(
                     order.getTable().getId(),
                     order.getTable().getTableNumber(),
                     order.getTable().getTableName()));
         }
-
-        // Map Waiter Group
         if (order.getWaiter() != null) {
             String waiterFullName = order.getWaiter().getFirstName() + " " + order.getWaiter().getLastName();
             dto.setWaiter(new UserSummaryDTO(order.getWaiter().getId(), waiterFullName.trim()));
         }
-
-        // Map Cashier Group
         if (order.getCashier() != null) {
             String cashierFullName = order.getCashier().getFirstName() + " " + order.getCashier().getLastName();
             dto.setCashier(new UserSummaryDTO(order.getCashier().getId(), cashierFullName.trim()));
         }
-
         return dto;
     }
 }

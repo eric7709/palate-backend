@@ -19,8 +19,11 @@ import com.app.palate.utils.ValidationUtils;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
+
 @RequiredArgsConstructor
 public class MenuItemService {
     private final EntityResolver entityResolver;
@@ -265,4 +268,5 @@ public class MenuItemService {
             throw new BadRequestException("Another menu item with this name already exists");
         }
     }
+
 }

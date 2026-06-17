@@ -109,7 +109,6 @@ public class RestaurantTableDataInitializer {
                 )));
 
                 log.info("""
-                    
                     """ + Ansi.GREEN + """
                     ================================================================
                     🌱 DATABASE SEEDER: TABLES GENERATED

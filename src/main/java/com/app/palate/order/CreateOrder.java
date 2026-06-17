@@ -64,6 +64,9 @@ public class CreateOrder {
                 order.setRoom(room);
                 order.setCashier(cashier);
                 order.setCustomer(customer);
+                if (request.getNote() != null) {
+                        order.setNote(request.getNote());
+                }
                 order.setInvoiceNumber(generateInvoiceNumber());
 
                 List<OrderItem> items = new ArrayList<>();

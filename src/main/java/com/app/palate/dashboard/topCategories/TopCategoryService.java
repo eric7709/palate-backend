@@ -34,14 +34,14 @@ public class TopCategoryService {
         // Enforce hard cap limit to a maximum of 7 items to align with menu items
         int optimizedLimit = Math.min(limit, 5);
 
-        // 2. Fetch data via the dedicated projection repository matching the optimized limit
+        // 2. Fetch data via the dedicated projection repository matching the optimized
+        // limit
         Pageable pageable = PageRequest.of(0, optimizedLimit);
         List<CategoryRevenueData> results = topCategoryRepository.findTopCategoriesByRevenue(
                 OrderStatus.PAID,
                 start,
                 end,
-                pageable
-        );
+                pageable);
 
         List<CategoryItem> items = new ArrayList<>();
 
@@ -62,9 +62,10 @@ public class TopCategoryService {
         // 4. Map records safely into DTO objects
         int rank = 1;
         for (CategoryRevenueData data : results) {
-            BigDecimal revenue = data.totalRevenue() != null ? BigDecimal.valueOf(data.totalRevenue()) : BigDecimal.ZERO;
-            
-            // Calculate percentage share relative to top category item 
+            BigDecimal revenue = data.totalRevenue() != null ? BigDecimal.valueOf(data.totalRevenue())
+                    : BigDecimal.ZERO;
+
+            // Calculate percentage share relative to top category item
             int percent = revenue
                     .multiply(BigDecimal.valueOf(100))
                     .divide(maxRevenue, 0, RoundingMode.HALF_UP)
@@ -75,8 +76,7 @@ public class TopCategoryService {
                     data.categoryName() != null ? data.categoryName() : "Unknown",
                     formatCurrency(revenue.longValue()),
                     percent,
-                    null
-            ));
+                    null));
         }
 
         return new TopCategoryResponse(items);
@@ -92,8 +92,13 @@ public class TopCategoryService {
     }
 
     private String formatCurrency(long amount) {
-        if (amount >= 1_000_000) return "₦" + (amount / 1_000_000) + "M";
-        if (amount >= 1_000) return "₦" + (amount / 1_000) + "k";
+        if (amount >= 1_000_000)
+            return "₦" + (amount / 1_000_000) + "M";
+        if (amount >= 1_000)
+            return "₦" + (amount / 1_000) + "k";
         return "₦" + amount;
     }
+
+    
+
 }

@@ -65,6 +65,17 @@ public class Order extends BaseEntity {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Customer customer;
 
+    private String note;
+
+    @Column(nullable = true)
+    private Double paidAmount;
+
+    @Column(nullable = true)
+    private Boolean isUnderpaid;
+
+    @Column(nullable = true)
+    private Double remainingBalance;
+
     @Column(nullable = true)
     private String virtualAccountNumber;
 
