@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.app.palate.customer.Customer;
 import com.app.palate.orderItem.OrderItem;
 import com.app.palate.orderItem.OrderItemResponse;
 
@@ -37,7 +38,7 @@ public class OrderResponseDTO {
     // Nested Grouped Data
     private UserSummaryDTO waiter;
     private UserSummaryDTO cashier;
-    private CustomerSummaryDTO customer;
+    private Customer customer;
     private RoomSummaryDTO room;
     private TableSummaryDTO table;
     private List<OrderItemResponse> items;
@@ -120,10 +121,7 @@ public class OrderResponseDTO {
         dto.setRemainingBalance(order.getRemainingBalance());
 
         if (order.getCustomer() != null) {
-            dto.setCustomer(new CustomerSummaryDTO(
-                    order.getCustomer().getId(),
-                    order.getCustomer().getName(),
-                    order.getCustomer().getTitle()));
+            dto.setCustomer(order.getCustomer());
         }
         if (order.getRoom() != null) {
             dto.setRoom(new RoomSummaryDTO(
