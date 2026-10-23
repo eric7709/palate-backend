@@ -34,7 +34,6 @@ import com.app.palate.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 @RestController
 @RequestMapping("/api/palate/orders")
 @RequiredArgsConstructor
@@ -54,10 +53,11 @@ public class OrderController {
 
         @PostMapping
         @ResponseStatus(HttpStatus.CREATED)
-        public Order createOrder(OrderRequestDTO request) {
+        public Order createOrder(@RequestBody OrderRequestDTO request) {
                 ValidationUtils.requireNonNull(request, "Request body");
                 OrderResponseDTO responseDto = createOrder.create(request, orderEvents);
-                return orderRepository.findById(responseDto.getId()).orElseThrow(() -> new BadRequestException(""));
+                return orderRepository.findById(responseDto.getId())
+                                .orElseThrow(() -> new BadRequestException(""));
         }
 
         @GetMapping

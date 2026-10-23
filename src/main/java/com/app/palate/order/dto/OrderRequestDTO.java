@@ -4,27 +4,31 @@ import java.util.List;
 
 import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.orderItem.OrderItemDTO;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@RequiredArgsConstructor
-public final class OrderRequestDTO {
+@Setter
+@NoArgsConstructor
+public class OrderRequestDTO {
 
-    private final Long tableId;
-    private final Long roomId;
+    private Long tableId;
+    private Long roomId;
 
-    private final Long waiterId;
-    private final Long cashierId;
+    private Long waiterId;
+    private Long cashierId;
 
-    private final OrderStatus status;
+    @JsonAlias("orderStatus")
+    private OrderStatus status;
 
-    private final List<OrderItemDTO> items;
+    private List<OrderItemDTO> items;
 
-    private final Long customerId;
-    private final String note;
-    private final String customerName;
-    private final String customerPhoneNumber;
-    private final String customerTitle;
+    private Long customerId;
+    private String note;
+    private String customerName;
+    private String customerPhoneNumber;
+    private String customerTitle;
 }

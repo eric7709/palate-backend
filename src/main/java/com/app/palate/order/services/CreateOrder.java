@@ -198,6 +198,7 @@ public class CreateOrder {
 
                 boolean hasRoom = request.getRoomId() != null;
 
+
                 if (!hasTable && !hasRoom) {
                         throw new BadRequestException(
                                         "Order must belong to either a table or a room");
