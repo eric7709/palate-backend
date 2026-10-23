@@ -2,7 +2,6 @@
 
     import org.hibernate.annotations.OnDelete;
     import org.hibernate.annotations.OnDeleteAction;
-    import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     import com.app.palate.category.Category;
     import com.app.palate.utils.BaseEntity;
     import jakarta.persistence.*;
@@ -14,7 +13,6 @@
     @Setter
     @Entity
     @NoArgsConstructor
-    @EntityListeners(AuditingEntityListener.class)
     public class MenuItem extends BaseEntity {
 
         @NotBlank

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,13 +41,8 @@ public class CategoryController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Page<CategoryResponseDTO> getAllCategories(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-        Page<Category> categoryPage = categoryService.getAllCategories(
-                search, page, size, sortBy, sortDirection);
+            CategorySearchCriteria criteria) {
+        Page<Category> categoryPage = categoryService.getAllCategories(criteria);
         return categoryPage.map(categoryMapper::mapToDto);
     }
 

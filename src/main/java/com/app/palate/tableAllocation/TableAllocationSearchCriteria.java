@@ -1,0 +1,26 @@
+package com.app.palate.tableAllocation;
+
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class TableAllocationSearchCriteria {
+    private String search;
+    private Long tableId;
+    private Long staffId;
+    private String role;
+    private Boolean active;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    private LocalDate date;
+    private int page = 0;
+    private int size = 10;
+    private String sortBy = "cashierAllocatedAt";
+    private String sortDirection = "desc";
+}

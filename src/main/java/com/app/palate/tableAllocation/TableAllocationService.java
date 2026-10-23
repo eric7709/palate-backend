@@ -110,39 +110,56 @@ public class TableAllocationService {
     // Query
     // -------------------------------------------------------------------------
 
-    public Page<TableAllocation> getAllAllocations(
-            Long tableId,
-            Long staffId,
-            String role,
-            Boolean active,
-            LocalDate date,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection) {
+    public Page<TableAllocation> getAllAllocations(TableAllocationSearchCriteria criteria) {
 
-        Sort sort = sortDirection.equalsIgnoreCase("desc")
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
+        Sort sort = criteria.getSortDirection().equalsIgnoreCase("desc")
+                ? Sort.by(criteria.getSortBy()).descending()
+                : Sort.by(criteria.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
 
         Specification<TableAllocation> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (tableId != null) {
-                predicates.add(cb.equal(root.get("table").get("id"), tableId));
+            if (criteria.getSearch() != null && !criteria.getSearch().isBlank()) {
+                String pattern = "%" + criteria.getSearch().trim().toLowerCase() + "%";
+                var tableJoin = root.join("table", JoinType.LEFT);
+                var cashierJoin = root.join("cashier", JoinType.LEFT);
+                var waiterJoin = root.join("waiter", JoinType.LEFT);
+                predicates.add(cb.or(
+                        cb.like(root.get("id").as(String.class), pattern),
+                        cb.like(cb.lower(tableJoin.get("tableName")), pattern),
+                        cb.like(tableJoin.get("tableNumber").as(String.class), pattern),
+                        cb.like(cb.lower(cashierJoin.get("firstName")), pattern),
+                        cb.like(cb.lower(cashierJoin.get("lastName")), pattern),
+                        cb.like(cb.lower(cashierJoin.get("email")), pattern),
+                        cb.like(cashierJoin.get("phoneNumber"), pattern),
+                        cb.like(cb.lower(waiterJoin.get("firstName")), pattern),
+                        cb.like(cb.lower(waiterJoin.get("lastName")), pattern),
+                        cb.like(cb.lower(waiterJoin.get("email")), pattern),
+                        cb.like(waiterJoin.get("phoneNumber"), pattern),
+                        cb.like(root.get("cashierAllocatedAt").as(String.class), pattern),
+                        cb.like(root.get("cashierDeallocatedAt").as(String.class), pattern),
+                        cb.like(root.get("waiterAllocatedAt").as(String.class), pattern),
+                        cb.like(root.get("waiterDeallocatedAt").as(String.class), pattern),
+                        cb.like(root.get("createdAt").as(String.class), pattern),
+                        cb.like(root.get("updatedAt").as(String.class), pattern)));
+                query.distinct(true);
             }
 
             // FIX #3: use explicit LEFT JOINs to avoid null path traversal on nullable FKs
-            if (staffId != null) {
-                predicates.add(cb.or(
-                        cb.equal(root.join("cashier", JoinType.LEFT).get("id"), staffId),
-                        cb.equal(root.join("waiter", JoinType.LEFT).get("id"), staffId)));
+            if (criteria.getTableId() != null) {
+                predicates.add(cb.equal(root.get("table").get("id"), criteria.getTableId()));
             }
 
-            if (role != null && !role.isBlank()) {
-                String normalized = role.trim().toUpperCase();
+            if (criteria.getStaffId() != null) {
+                predicates.add(cb.or(
+                        cb.equal(root.join("cashier", JoinType.LEFT).get("id"), criteria.getStaffId()),
+                        cb.equal(root.join("waiter", JoinType.LEFT).get("id"), criteria.getStaffId())));
+            }
+
+            if (criteria.getRole() != null && !criteria.getRole().isBlank()) {
+                String normalized = criteria.getRole().trim().toUpperCase();
                 if (normalized.equals("ROLE_CASHIER") || normalized.equals("CASHIER")) {
                     predicates.add(cb.isNotNull(root.get("cashier")));
                 } else if (normalized.equals("ROLE_WAITER") || normalized.equals("WAITER")) {
@@ -150,8 +167,8 @@ public class TableAllocationService {
                 }
             }
             // FIX #5: tightened active/inactive predicate logic
-            if (active != null) {
-                if (active) {
+            if (criteria.getActive() != null) {
+                if (criteria.getActive()) {
                     // Active = at least one staff assigned and not yet deallocated
                     predicates.add(cb.or(
                             cb.and(
@@ -175,9 +192,9 @@ public class TableAllocationService {
                 }
             }
 
-            if (date != null) {
-                Instant startOfDay = date.atStartOfDay().toInstant(ZoneOffset.UTC);
-                Instant endOfDay = date.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
+            if (criteria.getDate() != null) {
+                Instant startOfDay = criteria.getDate().atStartOfDay().toInstant(ZoneOffset.UTC);
+                Instant endOfDay = criteria.getDate().plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
                 predicates.add(cb.or(
                         cb.between(root.get("cashierAllocatedAt"), startOfDay, endOfDay),
                         cb.between(root.get("waiterAllocatedAt"), startOfDay, endOfDay)));

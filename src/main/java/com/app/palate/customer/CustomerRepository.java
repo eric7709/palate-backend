@@ -1,5 +1,7 @@
 package com.app.palate.customer;
 
+import com.app.palate.customer.dto.TopCustomerDTO;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +19,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, JpaSp
 
 
     @Query("""
-                SELECT new com.app.palate.customer.TopCustomerDTO(
+                SELECT new com.app.palate.customer.dto.TopCustomerDTO(
                     o.customer.id,
                     o.customer.name,
                     SUM(o.total)

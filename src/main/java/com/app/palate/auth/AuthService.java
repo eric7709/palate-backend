@@ -148,41 +148,43 @@ public class AuthService {
     // GET ALL USERS
     // -----------------------------
 
-    public Page<Account> getAllEmployees(
-            String search,
-            String role,
-            String status,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection) {
+    public Page<Account> getAllEmployees(EmployeeSearchCriteria criteria) {
 
         // 1. Setup sorting
-        Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.DESC.name())
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
+        Sort sort = criteria.getSortDirection().equalsIgnoreCase(Sort.Direction.DESC.name())
+                ? Sort.by(criteria.getSortBy()).descending()
+                : Sort.by(criteria.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
 
         // 2. Build dynamic Specification
         Specification<Account> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (search != null && !search.trim().isEmpty()) {
-                String cleanSearch = "%" + search.trim().toLowerCase() + "%";
+            if (criteria.getSearch() != null && !criteria.getSearch().trim().isEmpty()) {
+                String cleanSearch = "%" + criteria.getSearch().trim().toLowerCase() + "%";
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("firstName")), cleanSearch),
                         cb.like(cb.lower(root.get("lastName")), cleanSearch),
                         cb.like(cb.lower(root.get("email")), cleanSearch),
-                        cb.like(root.get("phoneNumber"), cleanSearch)));
+                        cb.like(root.get("phoneNumber"), cleanSearch),
+                        cb.like(cb.lower(root.get("gender").as(String.class)), cleanSearch),
+                        cb.like(cb.lower(root.get("role").as(String.class)), cleanSearch),
+                        cb.like(cb.lower(root.get("status").as(String.class)), cleanSearch),
+                        cb.like(root.get("id").as(String.class), cleanSearch),
+                        cb.like(root.get("createdAt").as(String.class), cleanSearch),
+                        cb.like(root.get("updatedAt").as(String.class), cleanSearch)));
             }
 
-            if (role != null && !role.isBlank()) {
-                predicates.add(cb.equal(root.get("role"), role));
+            if (criteria.getRole() != null && !criteria.getRole().isBlank()) {
+                predicates.add(cb.equal(root.get("role"), criteria.getRole()));
             }
 
-            if (status != null && !status.isBlank()) {
-                predicates.add(cb.equal(root.get("status"), status));
+            if (criteria.getStatus() != null && !criteria.getStatus().isBlank()) {
+                predicates.add(cb.equal(root.get("status"), criteria.getStatus()));
+            }
+            if (criteria.getGender() != null && !criteria.getGender().isBlank()) {
+                predicates.add(cb.equal(root.get("gender"), criteria.getGender()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

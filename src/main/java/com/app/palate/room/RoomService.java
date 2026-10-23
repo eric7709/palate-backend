@@ -65,41 +65,51 @@ public class RoomService {
                 .orElseThrow(() -> new BadRequestException("Room not found"));
     }
 
-    public Page<Room> getAllRooms(
-            String search,
-            RoomStatus status,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection) {
+    public Page<Room> getAllRooms(RoomSearchCriteria criteria) {
 
-        Sort sort = sortDirection.equalsIgnoreCase("desc")
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Sort sort = criteria.getSortDirection().equalsIgnoreCase("desc")
+                ? Sort.by(criteria.getSortBy()).descending()
+                : Sort.by(criteria.getSortBy()).ascending();
+        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
 
         Specification<Room> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Text search across room metrics and assigned staff names
-            if (search != null && !search.trim().isEmpty()) {
-                String pattern = "%" + search.toLowerCase() + "%";
+            if (criteria.getSearch() != null && !criteria.getSearch().trim().isEmpty()) {
+                String pattern = "%" + criteria.getSearch().trim().toLowerCase() + "%";
 
                 Join<Room, Account> cashierJoin = root.join("cashier", JoinType.LEFT);
 
                 Predicate byRoomNumber = cb.like(cb.lower(root.get("roomNumber")), pattern);
                 Predicate byFloor = cb.like(cb.toString(root.get("floor")), pattern);
+                Predicate byQrCode = cb.like(cb.lower(root.get("qrCode")), pattern);
+                Predicate byStatus = cb.like(cb.lower(root.get("status").as(String.class)), pattern);
+                Predicate byId = cb.like(root.get("id").as(String.class), pattern);
+                Predicate byCreatedAt = cb.like(root.get("createdAt").as(String.class), pattern);
+                Predicate byUpdatedAt = cb.like(root.get("updatedAt").as(String.class), pattern);
+                Predicate byCashierId = cb.like(cashierJoin.get("id").as(String.class), pattern);
 
                 Predicate byCashierFirst = cb.like(cb.lower(cashierJoin.get("firstName")), pattern);
                 Predicate byCashierLast = cb.like(cb.lower(cashierJoin.get("lastName")), pattern);
+                Predicate byCashierEmail = cb.like(cb.lower(cashierJoin.get("email")), pattern);
+                Predicate byCashierPhone = cb.like(cashierJoin.get("phoneNumber"), pattern);
 
-                predicates.add(cb.or(byRoomNumber, byFloor, byCashierFirst, byCashierLast));
+                predicates.add(cb.or(byRoomNumber, byFloor, byQrCode, byStatus, byId,
+                        byCreatedAt, byUpdatedAt, byCashierId,
+                        byCashierFirst, byCashierLast, byCashierEmail, byCashierPhone));
                 query.distinct(true);
             }
 
             // Status enum filtering
-            if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status));
+            if (criteria.getStatus() != null) {
+                predicates.add(cb.equal(root.get("status"), criteria.getStatus()));
+            }
+            if (criteria.getFloor() != null) {
+                predicates.add(cb.equal(root.get("floor"), criteria.getFloor()));
+            }
+            if (criteria.getCashierId() != null) {
+                predicates.add(cb.equal(root.get("cashier").get("id"), criteria.getCashierId()));
             }
 
             return predicates.isEmpty()

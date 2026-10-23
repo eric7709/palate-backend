@@ -34,11 +34,11 @@ public class AccountDataInitializer {
     ) {}
 
     private static final List<AccountSeed> ALL_SEEDS = List.of(
-            new AccountSeed("Admin", "Safron",  "admin@safronhotel.com", "08123221122",          "admin123",  Role.ROLE_ADMIN,   Gender.MALE),
-            new AccountSeed("John",  "Doe",   "john@safronhotel.com",  "08011111111", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
-            new AccountSeed("Jane",  "Smith", "jane@safronhotel.com",  "08022222222", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE),
-            new AccountSeed("Mike",  "Brown", "mike@safronhotel.com",  "08033333333", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
-            new AccountSeed("Lucy",  "Adams", "lucy@safronhotel.com",  "08044444444", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE)
+            new AccountSeed("Admin", "Safron",  "admin@palate.com", "08123221122",          "admin123",  Role.ROLE_ADMIN,   Gender.MALE),
+            new AccountSeed("John",  "Doe",   "john@palate.com",  "08011111111", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
+            new AccountSeed("Jane",  "Smith", "jane@palate.com",  "08022222222", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE),
+            new AccountSeed("Mike",  "Brown", "mike@palate.com",  "08033333333", "staff123",  Role.ROLE_WAITER,  Gender.MALE),
+            new AccountSeed("Lucy",  "Adams", "lucy@palate.com",  "08044444444", "staff123",  Role.ROLE_CASHIER, Gender.FEMALE)
     );
 
     @Bean

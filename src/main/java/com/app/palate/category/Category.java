@@ -2,8 +2,6 @@ package com.app.palate.category;
 
 import java.util.List;
 
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import com.app.palate.menuItem.MenuItem;
 import com.app.palate.utils.BaseEntity;
 import jakarta.persistence.*;
@@ -15,7 +13,6 @@ import lombok.*;
 @Entity
 @Setter
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class Category extends BaseEntity {
 
     @NotNull

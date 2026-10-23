@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.app.palate.order.Order;
 import com.app.palate.order.OrderRepository;
 import com.app.palate.order.OrderService;
-import com.app.palate.order.OrderStatus;
-import com.app.palate.order.UpdateOrderStatusDTO;
+import com.app.palate.order.dto.UpdateOrderStatusDTO;
+import com.app.palate.order.enums.OrderStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

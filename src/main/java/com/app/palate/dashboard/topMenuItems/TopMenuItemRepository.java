@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.orderItem.OrderItem;
-import com.app.palate.order.OrderStatus;
 
 public interface TopMenuItemRepository extends JpaRepository<OrderItem, Long> {
 

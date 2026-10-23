@@ -15,16 +15,8 @@ public class EmployeeController {
     
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<AccountResponseDTO> getAllEmployees(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "30") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-
-        return authService.getAllEmployees(search, role, status, page, size, sortBy, sortDirection)
+    public Page<AccountResponseDTO> getAllEmployees(EmployeeSearchCriteria criteria) {
+        return authService.getAllEmployees(criteria)
                 .map(AccountResponseDTO::mapToResponse);
     }
     

@@ -65,15 +65,8 @@ public class RoomController {
         // =========================
         @GetMapping
         @ResponseStatus(HttpStatus.OK)
-        public Page<RoomResponseDTO> getAllRooms(
-                        @RequestParam(required = false) String search,
-                        @RequestParam(required = false) RoomStatus status,
-                        @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size,
-                        @RequestParam(defaultValue = "createdAt") String sortBy,
-                        @RequestParam(defaultValue = "desc") String sortDirection) {
-                // Pass the request parameters down to your updated service layer
-                return roomService.getAllRooms(search, status, page, size, sortBy, sortDirection)
+        public Page<RoomResponseDTO> getAllRooms(RoomSearchCriteria criteria) {
+                return roomService.getAllRooms(criteria)
                                 .map(roomMapper::toDTO);
         }
 

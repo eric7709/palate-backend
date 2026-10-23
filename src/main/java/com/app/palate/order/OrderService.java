@@ -13,6 +13,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.app.palate.exceptions.BadRequestException;
+import com.app.palate.order.dto.OrderFilterDTO;
+import com.app.palate.order.dto.OrderPageResponse;
+import com.app.palate.order.dto.OrderRequestDTO;
+import com.app.palate.order.dto.OrderResponseDTO;
+import com.app.palate.order.dto.OrderStatusCounts;
+import com.app.palate.order.dto.UpdateOrderStatusDTO;
+import com.app.palate.order.enums.OrderStatus;
+import com.app.palate.order.helpers.OrderEvents;
+import com.app.palate.order.helpers.OrderSpecification;
+import com.app.palate.order.services.CreateOrder;
 import com.app.palate.utils.DateTimeUtils;
 import com.app.palate.utils.ValidationUtils;
 
@@ -28,16 +38,13 @@ public class OrderService {
     private final OrderEvents orderEvents;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "updatedAt", "total", "quantity");
-
     // ==========================
     // CREATE ORDER
     // ==========================
     public Order createOrder(OrderRequestDTO request) {
         ValidationUtils.requireNonNull(request, "Request body");
-
         // Let CreateOrder focus purely on database entity orchestration
-        OrderResponseDTO responseDto = createOrder.createOrder(request, orderEvents);
-
+        OrderResponseDTO responseDto = createOrder.create(request, orderEvents);
         // Fetch back the created entity to keep the service signature clean
         return orderRepository.findById(responseDto.getId())
                 .orElseThrow(() -> new BadRequestException("Order creation failed unexpectedly"));

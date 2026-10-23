@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.app.palate.auth.Account;
 import com.app.palate.customer.Customer;
+import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.orderItem.OrderItem;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.room.Room;
@@ -12,13 +13,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 @Table(name = "orders", indexes = {
         @Index(name = "idx_orders_status_created", columnList = "status, createdAt")
 })

@@ -8,6 +8,7 @@ import com.app.palate.utils.BaseEntity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -16,6 +17,7 @@ import lombok.Setter;
 @Table(name = "rooms")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Room extends BaseEntity {
     
     @Column(nullable = false, unique = true)

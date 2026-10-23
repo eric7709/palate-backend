@@ -170,7 +170,6 @@ public class MenuItemSeeder {
     }
 
     private static final List<MenuItemSeed> MENU_ITEM_DATA = List.of(
-
             // Breakfast
             new MenuItemSeed("Nigerian Breakfast", "Your Choice of Sauce (Egg Sauce, Fish Sauce, Chicken Sauce), with Yam/Plantain (Fried or Boiled).", "Breakfast", 25000.0),
             new MenuItemSeed("Classic English Breakfast", "Your Choice of Eggs, Bacon, Chicken Sausage, Baked Beans, Grilled Tomatoes, Mushroom, Bread Toast.", "Breakfast", 25000.0),

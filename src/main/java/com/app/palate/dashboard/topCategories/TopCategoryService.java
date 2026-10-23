@@ -1,6 +1,6 @@
 package com.app.palate.dashboard.topCategories;
 
-import com.app.palate.order.OrderStatus;
+import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.utils.DashboardPeriod;
 
 import lombok.RequiredArgsConstructor;

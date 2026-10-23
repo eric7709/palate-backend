@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
@@ -47,14 +47,8 @@ public class RestaurantTableController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<RestaurantTableResponseDTO> getAllTables(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-        return restaurantTableService.getAllTables(search, status, page, size, sortBy, sortDirection)
+    public Page<RestaurantTableResponseDTO> getAllTables(RestaurantTableSearchCriteria criteria) {
+        return restaurantTableService.getAllTables(criteria)
                 .map(tableResponseMapper::mapToResponse);
     }
 

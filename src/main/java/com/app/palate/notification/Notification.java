@@ -2,19 +2,15 @@ package com.app.palate.notification;
 
 import java.time.Instant;
 
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import com.app.palate.auth.Account;
 import com.app.palate.utils.BaseEntity;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @Getter
 @Setter

@@ -10,13 +10,11 @@ import lombok.*;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 public class OrderItem extends BaseEntity {
     @JsonIgnore
     @ManyToOne

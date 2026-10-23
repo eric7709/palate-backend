@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.app.palate.order.OrderStatus;
+import com.app.palate.order.enums.OrderStatus;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.price * oi.quantity) as revenue " +

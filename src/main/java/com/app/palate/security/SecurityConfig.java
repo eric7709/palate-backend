@@ -84,7 +84,6 @@ public class SecurityConfig {
                         // =========================
                         // CUSTOMERS
                         // =========================
-
                         .requestMatchers(HttpMethod.POST, "/api/palate/customers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/palate/customers/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.PUT, "/api/palate/customers/**").hasAnyRole("ADMIN", "MANAGER")
@@ -93,7 +92,7 @@ public class SecurityConfig {
                         // =========================
                         // TABLES
                         // =========================
-
+                        .requestMatchers(HttpMethod.GET, "/api/palate/recommendations/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/palate/tables/**")
                         .hasAnyRole("ADMIN", "MANAGER", "WAITER", "CASHIER")
 

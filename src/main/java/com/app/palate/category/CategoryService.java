@@ -57,30 +57,42 @@ public class CategoryService {
     }
 
     // GET ALL
-    public Page<Category> getAllCategories(
-            String search,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection) {
+    public Page<Category> getAllCategories(CategorySearchCriteria criteria) {
 
         // 1. Setup sorting options safely
-        Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.DESC.name())
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
+        Sort sort = criteria.getSortDirection().equalsIgnoreCase(Sort.Direction.DESC.name())
+                ? Sort.by(criteria.getSortBy()).descending()
+                : Sort.by(criteria.getSortBy()).ascending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
 
         // 2. Build multi-conditional structural text search
         Specification<Category> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (search != null && !search.trim().isEmpty()) {
-                String cleanSearch = "%" + search.trim().toLowerCase() + "%";
+            if (criteria.getSearch() != null && !criteria.getSearch().trim().isEmpty()) {
+                String cleanSearch = "%" + criteria.getSearch().trim().toLowerCase() + "%";
 
-                // Assuming your Category has a 'name' field (and optional 'description')
                 Predicate nameMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), cleanSearch);
-                predicates.add(nameMatch);
+                Predicate descriptionMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("description")), cleanSearch);
+                Predicate statusMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("status")), cleanSearch);
+                Predicate idMatch = criteriaBuilder.like(root.get("id").as(String.class), cleanSearch);
+                Predicate createdAtMatch = criteriaBuilder.like(
+                        root.get("createdAt").as(String.class), cleanSearch);
+                Predicate updatedAtMatch = criteriaBuilder.like(
+                        root.get("updatedAt").as(String.class), cleanSearch);
+                var menuItemJoin = root.join("menuItems", jakarta.persistence.criteria.JoinType.LEFT);
+                Predicate menuItemNameMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(menuItemJoin.get("name")), cleanSearch);
+                predicates.add(criteriaBuilder.or(nameMatch, descriptionMatch, statusMatch,
+                        idMatch, createdAtMatch, updatedAtMatch, menuItemNameMatch));
+                query.distinct(true);
+            }
+
+            if (criteria.getStatus() != null && !criteria.getStatus().isBlank()) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), criteria.getStatus().trim()));
             }
 
             return predicates.isEmpty()

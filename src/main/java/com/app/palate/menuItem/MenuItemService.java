@@ -164,19 +164,14 @@ public class MenuItemService {
         menuItemRepository.deleteById(id);
     }
 
-    public Page<MenuItem> getAllMenuItems(
-            String search,
-            Long categoryId,
-            Boolean isAvailable,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection) {
+    public Page<MenuItem> getAllMenuItems(MenuItemSearchCriteria criteria) {
 
         // 1. Setup sorting parameters
         // 1. Setup sorting with a default fallback
-        String sortByField = (sortBy != null && !sortBy.isEmpty()) ? sortBy : "createdAt";
-        String direction = (sortDirection != null && sortDirection.equalsIgnoreCase("ASC"))
+        String sortByField = (criteria.getSortBy() != null && !criteria.getSortBy().isEmpty())
+                ? criteria.getSortBy() : "createdAt";
+        String direction = (criteria.getSortDirection() != null
+                && criteria.getSortDirection().equalsIgnoreCase("ASC"))
                 ? "ASC"
                 : "DESC"; // Default to DESC (latest first)
 
@@ -184,28 +179,59 @@ public class MenuItemService {
                 ? Sort.by(sortByField).descending()
                 : Sort.by(sortByField).ascending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
 
         // 2. Build multi-conditional SQL filter specifications
         Specification<MenuItem> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Text search over item name or description fields
-            if (search != null && !search.trim().isEmpty()) {
-                String cleanSearch = "%" + search.trim().toLowerCase() + "%";
+            if (criteria.getSearch() != null && !criteria.getSearch().trim().isEmpty()) {
+                String cleanSearch = "%" + criteria.getSearch().trim().toLowerCase() + "%";
                 Predicate nameMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), cleanSearch);
                 Predicate descMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), cleanSearch);
-                predicates.add(criteriaBuilder.or(nameMatch, descMatch));
+                Predicate imageMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("imageUrl")), cleanSearch);
+                Predicate statusMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("status").as(String.class)), cleanSearch);
+                Predicate priceMatch = criteriaBuilder.like(
+                        root.get("price").as(String.class), cleanSearch);
+                Predicate idMatch = criteriaBuilder.like(root.get("id").as(String.class), cleanSearch);
+                Predicate createdAtMatch = criteriaBuilder.like(
+                        root.get("createdAt").as(String.class), cleanSearch);
+                Predicate updatedAtMatch = criteriaBuilder.like(
+                        root.get("updatedAt").as(String.class), cleanSearch);
+                var categoryJoin = root.join("category", jakarta.persistence.criteria.JoinType.LEFT);
+                Predicate categoryNameMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(categoryJoin.get("name")), cleanSearch);
+                Predicate categoryDescriptionMatch = criteriaBuilder.like(
+                        criteriaBuilder.lower(categoryJoin.get("description")), cleanSearch);
+                predicates.add(criteriaBuilder.or(nameMatch, descMatch, imageMatch, statusMatch,
+                        priceMatch, idMatch, createdAtMatch, updatedAtMatch,
+                        categoryNameMatch, categoryDescriptionMatch));
+                query.distinct(true);
             }
 
             // Optional structural filter: by Category ID relationship
-            if (categoryId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("category").get("id"), categoryId));
+            if (criteria.getCategoryId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("category").get("id"), criteria.getCategoryId()));
             }
 
             // Optional structural filter: display active/inactive menu items
-            if (isAvailable != null) {
-                predicates.add(criteriaBuilder.equal(root.get("isAvailable"), isAvailable));
+            if (criteria.getStatus() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), criteria.getStatus()));
+            }
+            if (criteria.getIsAvailable() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"),
+                        criteria.getIsAvailable() ? MenuItemStatus.AVAILABLE : MenuItemStatus.UNAVAILABLE));
+            }
+            if (criteria.getMinPrice() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                        root.get("price"), criteria.getMinPrice()));
+            }
+            if (criteria.getMaxPrice() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                        root.get("price"), criteria.getMaxPrice()));
             }
 
             return predicates.isEmpty()

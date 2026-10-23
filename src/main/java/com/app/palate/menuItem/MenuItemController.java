@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,16 +45,8 @@ public class MenuItemController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<MenuItemResponseDTO> getAllMenuItems(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Boolean isAvailable,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-        Page<MenuItem> menuItemsPage = menuItemService.getAllMenuItems(
-                search, categoryId, isAvailable, page, size, sortBy, sortDirection);
+    public Page<MenuItemResponseDTO> getAllMenuItems(MenuItemSearchCriteria criteria) {
+        Page<MenuItem> menuItemsPage = menuItemService.getAllMenuItems(criteria);
         return menuItemsPage.map(menuItemMapper::toResponse);
     }
 

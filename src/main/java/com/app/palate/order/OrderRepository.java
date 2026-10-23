@@ -10,12 +10,24 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.app.palate.order.dto.OrderSummaryProjection;
+import com.app.palate.order.enums.OrderStatus;
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
 
     @Query("SELECT o FROM Order o WHERE o.status = 'PENDING' AND o.createdAt <= :cutoff")
     List<Order> findStaleOrders(@Param("cutoff") Instant cutoff);
     // Inside your OrderRepository.java
+
+    @Query("SELECT o FROM Order o WHERE o.customer.id = :customerId")
+    List<Order> fetchCustomerOrders(@Param("customerId") Long customerId);
+
+    List<Order> findByCustomerId(Long customerId);
+
+    List<Order> findByStatusAndCreatedAtBetween(OrderStatus status, Instant start, Instant end);
+
+    List<Order> findByCustomerIdAndCreatedAtBetween(Long customerId, Instant start, Instant end);
 
     @Query("""
                 SELECT

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.app.palate.order.Order;
-import com.app.palate.order.OrderStatus;
+import com.app.palate.order.enums.OrderStatus;
 
 public interface DashboardSummaryRepository extends JpaRepository<Order, Long> {
 

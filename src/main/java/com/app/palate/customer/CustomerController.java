@@ -2,16 +2,15 @@ package com.app.palate.customer;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import com.app.palate.customer.dto.CustomerRequestDTO;
+import com.app.palate.customer.dto.CustomerSearchCriteria;
+import com.app.palate.customer.services.CreateCustomer;
+import com.app.palate.customer.services.DeleteCustomer;
+import com.app.palate.customer.services.GetCustomerById;
+import com.app.palate.customer.services.SearchCustomers;
+import com.app.palate.customer.services.UpdateCustomer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,40 +18,39 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/palate/customers")
 @RequiredArgsConstructor
 public class CustomerController {
-    private final CustomerService customerService;
+    private final CreateCustomer createCustomer;
+    private final UpdateCustomer updateCustomer;
+    private final SearchCustomers searchCustomers;
+    private final GetCustomerById getCustomerById;
+    private final DeleteCustomer deleteCustomer;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Customer createCustomer(@RequestBody CustomerRequestDTO request) {
-        return customerService.createCustomer(request);
+    public Customer create(@RequestBody CustomerRequestDTO request) {
+        return createCustomer.create(request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<Customer> getAllCustomers(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
-        return customerService.getAllCustomers(search, page, size, sortBy, sortDirection);
+    public Page<Customer> search(CustomerSearchCriteria criteria) {
+        return searchCustomers.search(criteria);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Customer getCustomerById(@PathVariable Long id) {
-        return customerService.getCustomerById(id);
+    public Customer get(@PathVariable Long id) {
+        return getCustomerById.get(id);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Customer updateCustomer(@PathVariable Long id, @RequestBody CustomerRequestDTO request) {
-        return customerService.updateCustomer(id, request);
+    public Customer update(@PathVariable Long id, @RequestBody CustomerRequestDTO request) {
+        return updateCustomer.update(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
+    public void delete(@PathVariable Long id) {
+        deleteCustomer.delete(id);
     }
 }
