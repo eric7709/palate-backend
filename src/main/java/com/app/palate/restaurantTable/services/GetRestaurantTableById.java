@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
-import com.app.palate.utils.ValidationUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +16,10 @@ public class GetRestaurantTableById {
 
     @Transactional(readOnly = true)
     public RestaurantTable get(Long id) {
-        ValidationUtils.requireNonNull(id, "Table ID");
+
+        if(id  == null){
+            throw new BadRequestException("Table id is required");
+        }
 
         return restaurantTableRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("Table not found"));

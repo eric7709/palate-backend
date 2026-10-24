@@ -31,6 +31,7 @@ public class HandleMonnifyWebhook {
     private final CreateMonnifyInvoice createMonnifyInvoice;
     private final ObjectMapper objectMapper;
 
+    @SuppressWarnings("null")
     public void handle(String rawBody) {
         try {
             log.info("Monnify raw webhook payload: {}", rawBody);

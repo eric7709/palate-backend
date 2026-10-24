@@ -45,6 +45,7 @@ public class CreateMonnifyInvoice {
     private final ObjectMapper objectMapper;
     private String cachedToken;
 
+    @SuppressWarnings("null")
     public MonnifyInvoiceResponse execute(Long orderId, double amountNaira, String customerName) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + getAuthToken());
@@ -95,6 +96,7 @@ public class CreateMonnifyInvoice {
         }
     }
 
+    @SuppressWarnings("null")
     private String getAuthToken() {
         String credentials = apiKey + ":" + secretKey;
         String encoded = Base64.getEncoder().encodeToString(credentials.getBytes());

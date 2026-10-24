@@ -1,5 +1,9 @@
 package com.app.palate.auth;
 
+import com.app.palate.auth.enums.Gender;
+import com.app.palate.auth.enums.AccountStatus;
+import com.app.palate.auth.enums.Role;
+
 import com.app.palate.utils.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

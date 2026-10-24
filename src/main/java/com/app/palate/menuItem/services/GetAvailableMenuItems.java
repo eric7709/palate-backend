@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class GetAvailableMenuItems {
     private final MenuItemRepository menuItemRepository;
 
+    @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public List<Long> get(List<Long> menuItemIds) {
         ValidationUtils.requireNotEmpty(menuItemIds, "Menu item ID list");

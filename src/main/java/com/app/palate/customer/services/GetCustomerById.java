@@ -16,6 +16,7 @@ public class GetCustomerById {
     private final CustomerRepository customerRepository;
 
     @Transactional(readOnly = true)
+    @SuppressWarnings("null")
     public Customer get(Long id) {
         ValidationUtils.requireNonNull(id, "Customer ID");
 

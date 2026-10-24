@@ -1,26 +1,27 @@
 package com.app.palate.dashboard.dashboardSummary;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.palate.dashboard.dashboardSummary.dto.DashboardSummaryDTO;
+import com.app.palate.dashboard.dashboardSummary.services.GetDashboardSummary;
 import com.app.palate.utils.DashboardPeriod;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("api/palate/dashboard/summary")
 @RequiredArgsConstructor
+@RequestMapping("/api/palate/dashboard/summary")
 public class DashboardSummaryController {
+    private final GetDashboardSummary getDashboardSummary;
 
-    private final DashboardSummaryService dashboardSummaryService;
-    
     @GetMapping
-    public ResponseEntity<DashboardSummaryDTO> getSummary(
-            @RequestParam(defaultValue = "THIS_MONTH") DashboardPeriod period) {
-        return ResponseEntity.ok(dashboardSummaryService.getSummary(period));
+    @ResponseStatus(HttpStatus.OK)
+    public DashboardSummaryDTO get(@RequestParam(defaultValue = "THIS_MONTH") DashboardPeriod period) {
+        return getDashboardSummary.get(period);
     }
-
 }

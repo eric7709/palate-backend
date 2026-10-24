@@ -53,6 +53,7 @@ public class MenuItemRecommendationService {
      * {@code limit} of 0 or less (e.g. not supplied by the caller) is
      * treated as {@link #DEFAULT_LIMIT} rather than rejected.
      */
+    @SuppressWarnings("null")
     public List<MenuItem> recommend(Long customerId, int limit) {
         int resolvedLimit = limit > 0 ? limit : DEFAULT_LIMIT;
 
@@ -107,7 +108,9 @@ public class MenuItemRecommendationService {
 
     // --- Frequency counting -------------------------------------------------
 
+    
     /** Counts total quantity ordered per menu item across the given orders. */
+    @SuppressWarnings("null")
     private Map<Long, Integer> countItemFrequency(List<Order> orders) {
         Map<Long, Integer> counts = new HashMap<>();
         for (Order order : orders) {
@@ -126,6 +129,7 @@ public class MenuItemRecommendationService {
     }
 
     /** Counts total quantity ordered per menu category across the given orders. */
+    @SuppressWarnings("null")
     private Map<Long, Integer> countCategoryFrequency(List<Order> orders) {
         Map<Long, Integer> counts = new HashMap<>();
         for (Order order : orders) {
@@ -145,7 +149,7 @@ public class MenuItemRecommendationService {
     }
 
     // --- Helpers --------------------------------------------------------------
-
+    @SuppressWarnings("null")
     private int maxValue(Map<Long, Integer> counts) {
         return counts.values().stream().mapToInt(Integer::intValue).max().orElse(0);
     }

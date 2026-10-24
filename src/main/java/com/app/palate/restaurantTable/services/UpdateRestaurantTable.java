@@ -3,7 +3,7 @@ package com.app.palate.restaurantTable.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.palate.auth.AuthService;
+import com.app.palate.auth.services.GetAccountById;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
@@ -25,7 +25,7 @@ public class UpdateRestaurantTable {
     private final GetRestaurantTableById getRestaurantTableById;
     private final AllocateStaff allocateStaff;
     private final DeallocateStaff deallocateStaff;
-    private final AuthService authService;
+    private final GetAccountById getAccountById;
 
     @Transactional
     public RestaurantTable update(Long id, RestaurantTableRequestDTO request) {
@@ -46,7 +46,7 @@ public class UpdateRestaurantTable {
             boolean isDifferent = table.getWaiter() == null || !table.getWaiter().getId().equals(waiterId);
             if (isDifferent) {
                 allocateStaff.allocate(table.getId(), waiterId);
-                table.setWaiter(authService.getAccountById(waiterId));
+                table.setWaiter(getAccountById.execute(waiterId));
             }
         } else if (table.getWaiter() != null) {
             deallocateStaff.deallocate(table.getId(), table.getWaiter().getId());
@@ -58,7 +58,7 @@ public class UpdateRestaurantTable {
             boolean isDifferent = table.getCashier() == null || !table.getCashier().getId().equals(cashierId);
             if (isDifferent) {
                 allocateStaff.allocate(table.getId(), cashierId);
-                table.setCashier(authService.getAccountById(cashierId));
+                table.setCashier(getAccountById.execute(cashierId));
             }
         } else if (table.getCashier() != null) {
             deallocateStaff.deallocate(table.getId(), table.getCashier().getId());

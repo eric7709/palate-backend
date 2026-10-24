@@ -18,6 +18,7 @@ public class UpdateCustomer {
     private final CustomerRepository customerRepository;
 
     @Transactional
+    @SuppressWarnings("null")
     public Customer update(Long id, CustomerRequestDTO request) {
         ValidationUtils.requireNonNull(id, "Customer ID");
         ValidationUtils.requireNonNull(request, "Request body");

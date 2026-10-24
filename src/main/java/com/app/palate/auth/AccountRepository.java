@@ -1,5 +1,8 @@
 package com.app.palate.auth;
 
+import com.app.palate.auth.enums.Role;
+import com.app.palate.auth.dto.TopWaiterDTO;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +35,7 @@ public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpec
     List<Account> findAllByRole(Role role);
 
     @Query("""
-                SELECT new com.app.palate.auth.TopWaiterDTO(
+                SELECT new com.app.palate.auth.dto.TopWaiterDTO(
                     o.waiter.id,
                     o.waiter.firstName,
                     o.waiter.lastName,

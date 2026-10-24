@@ -15,6 +15,7 @@ public class GetOrderById {
 
     private final OrderRepository orderRepository;
 
+    @SuppressWarnings("null")
     public Order get(Long id) {
 
         ValidationUtils.requireNonNull(id, "Order ID");

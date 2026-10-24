@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class GetMenuItemById {
     private final MenuItemRepository menuItemRepository;
 
+    @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public MenuItem get(Long id) {
         ValidationUtils.requireNonNull(id, "Menu Item ID");

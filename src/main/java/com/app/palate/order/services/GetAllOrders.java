@@ -39,6 +39,7 @@ public class GetAllOrders {
                     "quantity"
             );
 
+    @SuppressWarnings("null")
     public OrderPageResponse get(OrderFilterDTO filter) {
 
         ValidationUtils.requireNonNull(

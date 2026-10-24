@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class DeleteCategory {
     private final CategoryRepository categoryRepository;
 
+    @SuppressWarnings("null")
     @Transactional
     public void delete(Long id) {
         ValidationUtils.requireNonNull(id, "Category ID");

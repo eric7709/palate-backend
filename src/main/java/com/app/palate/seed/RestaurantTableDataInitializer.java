@@ -2,7 +2,7 @@ package com.app.palate.seed;
 
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
-import com.app.palate.auth.Role;
+import com.app.palate.auth.enums.Role;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
 import com.app.palate.restaurantTable.enums.RestaurantTableStatus;
@@ -57,6 +57,7 @@ public class RestaurantTableDataInitializer {
     );
 
     @Bean
+    @SuppressWarnings("null")
     @Order(6)
     CommandLineRunner seedTables() {
         return args -> {
@@ -123,6 +124,7 @@ public class RestaurantTableDataInitializer {
     }
 
     @Bean
+    @SuppressWarnings("null")
     @Order(7)
     CommandLineRunner seedRooms() {
         return args -> {

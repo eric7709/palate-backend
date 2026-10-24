@@ -29,6 +29,7 @@ public class CreateMenuItemsBulk {
     private final MenuItemRepository menuItemRepository;
 
     @Transactional
+    @SuppressWarnings("null")
     public List<MenuItem> create(List<MenuItemRequestDTO> requests) {
         ValidationUtils.requireNotEmpty(requests, "Bulk request list");
 

@@ -8,12 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.app.palate.order.enums.OrderStatus;
+import com.app.palate.dashboard.topCategories.dto.CategoryRevenueData;
 import com.app.palate.orderItem.OrderItem;
 
 public interface TopCategoryRepository extends JpaRepository<OrderItem, Long> {
 
     @Query("""
-            SELECT new com.app.palate.dashboard.topCategories.CategoryRevenueData(
+            SELECT new com.app.palate.dashboard.topCategories.dto.CategoryRevenueData(
                 mi.category.id,
                 mi.category.name,
                 SUM(oi.price * oi.quantity)

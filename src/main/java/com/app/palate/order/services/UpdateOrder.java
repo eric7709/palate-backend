@@ -19,6 +19,7 @@ public class UpdateOrder {
     private final OrderRepository orderRepository;
     private final OrderEvents orderEvents;
 
+    @SuppressWarnings("null")
     public Order execute(Long id, UpdateOrderStatusDTO request) {
 
         ValidationUtils.requireNonNull(id, "Order ID");

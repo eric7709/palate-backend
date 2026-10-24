@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class DeleteMenuItem {
     private final MenuItemRepository menuItemRepository;
 
+    @SuppressWarnings("null")
     @Transactional
     public void delete(Long id) {
         ValidationUtils.requireNonNull(id, "Menu Item ID");

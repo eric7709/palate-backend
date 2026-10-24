@@ -26,6 +26,7 @@ public class UpdateMenuItem {
     private final MenuItemMapper menuItemMapper;
 
     @Transactional
+    @SuppressWarnings("null")
     public MenuItem update(Long id, MenuItemRequestDTO request) {
         ValidationUtils.requireNonNull(id, "Menu Item ID");
 

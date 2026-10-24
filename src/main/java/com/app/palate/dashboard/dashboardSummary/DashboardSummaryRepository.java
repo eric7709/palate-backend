@@ -6,18 +6,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.app.palate.dashboard.dashboardSummary.dto.RevenueSummary;
 import com.app.palate.order.Order;
 import com.app.palate.order.enums.OrderStatus;
 
 public interface DashboardSummaryRepository extends JpaRepository<Order, Long> {
 
     @Query("""
-            SELECT new com.app.palate.dashboard.dashboardSummary.RevenueSummary(
+            SELECT new com.app.palate.dashboard.dashboardSummary.dto.RevenueSummary(
                 sub.period,
                 COALESCE(SUM(sub.totalPrice), 0.0)
             )
             FROM (
-                SELECT 
+                SELECT
                     CASE WHEN o.createdAt >= :currentStart THEN 'CURRENT' ELSE 'PREVIOUS' END as period,
                     o.total as totalPrice
                 FROM Order o

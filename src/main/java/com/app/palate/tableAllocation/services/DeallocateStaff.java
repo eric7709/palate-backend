@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.palate.auth.Account;
-import com.app.palate.auth.AuthService;
-import com.app.palate.auth.Role;
+import com.app.palate.auth.services.GetAccountById;
+import com.app.palate.auth.enums.Role;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DeallocateStaff {
     private final EntityResolver entityResolver;
-    private final AuthService authService;
+    private final GetAccountById getAccountById;
     private final RestaurantTableRepository restaurantTableRepository;
     private final TableAllocationCloser tableAllocationCloser;
 
@@ -28,7 +28,7 @@ public class DeallocateStaff {
         if (tableId == null || staffId == null)
             throw new BadRequestException("IDs must not be null");
 
-        Account staff = authService.getAccountById(staffId);
+        Account staff = getAccountById.execute(staffId);
         Role role = staff.getRole();
         RestaurantTable table = entityResolver.resolveRestaurantTable(tableId);
 

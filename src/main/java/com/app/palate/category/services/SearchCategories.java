@@ -29,6 +29,7 @@ public class SearchCategories {
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
+    @SuppressWarnings("null")
     public Page<Category> search(CategorySearchCriteria criteria) {
         Sort sort = criteria.getSortDirection().equalsIgnoreCase(Sort.Direction.DESC.name())
                 ? Sort.by(criteria.getSortBy()).descending()

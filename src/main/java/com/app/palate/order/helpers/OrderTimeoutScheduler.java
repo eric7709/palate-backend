@@ -2,7 +2,7 @@ package com.app.palate.order.helpers;
 
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
-import com.app.palate.auth.Role;
+import com.app.palate.auth.enums.Role;
 import com.app.palate.notification.services.SendNotification;
 import com.app.palate.order.Order;
 import com.app.palate.order.OrderRepository;

@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class SearchCustomers {
     private final CustomerRepository customerRepository;
 
+    @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public Page<Customer> search(CustomerSearchCriteria criteria) {
         Sort sort = criteria.getSortDirection().equalsIgnoreCase(Sort.Direction.DESC.name())

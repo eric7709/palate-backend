@@ -17,6 +17,7 @@ public class UpdateCategory {
     private final CategoryRepository categoryRepository;
 
     @Transactional
+    @SuppressWarnings("null")
     public Category update(Long id, CategoryRequestDTO request) {
         ValidationUtils.requireNonNull(id, "Category ID");
         ValidationUtils.requireNonNull(request, "Request body");

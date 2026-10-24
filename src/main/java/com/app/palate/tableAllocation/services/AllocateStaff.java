@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.palate.auth.Account;
-import com.app.palate.auth.AuthService;
-import com.app.palate.auth.Role;
+import com.app.palate.auth.services.GetAccountById;
+import com.app.palate.auth.enums.Role;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AllocateStaff {
     private final EntityResolver entityResolver;
-    private final AuthService authService;
+    private final GetAccountById getAccountById;
     private final TableAllocationRepository tableAllocationRepository;
     private final RestaurantTableRepository restaurantTableRepository;
     private final TableAllocationCloser tableAllocationCloser;
@@ -37,7 +37,7 @@ public class AllocateStaff {
             throw new BadRequestException("IDs must not be null");
 
         RestaurantTable table = entityResolver.resolveRestaurantTable(tableId);
-        Account staff = authService.getAccountById(staffId);
+        Account staff = getAccountById.execute(staffId);
         Role role = staff.getRole();
 
         if (role == Role.ROLE_CASHIER) {

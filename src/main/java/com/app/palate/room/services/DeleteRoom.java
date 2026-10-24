@@ -14,6 +14,7 @@ public class DeleteRoom {
     private final RoomRepository roomRepository;
     private final GetRoomById getRoomById;
 
+    @SuppressWarnings("null")
     @Transactional
     public void delete(Long id) {
         ValidationUtils.requireNonNull(id, "Room ID");

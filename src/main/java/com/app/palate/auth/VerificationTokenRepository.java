@@ -1,5 +1,7 @@
 package com.app.palate.auth;
 
+import com.app.palate.auth.enums.TokenType;
+
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

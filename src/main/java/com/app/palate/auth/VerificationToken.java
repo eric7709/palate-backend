@@ -1,5 +1,7 @@
 package com.app.palate.auth;
 
+import com.app.palate.auth.enums.TokenType;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;

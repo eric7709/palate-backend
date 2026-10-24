@@ -17,6 +17,7 @@ public class MarkNotificationAsRead {
     private final NotificationRepository notificationRepository;
 
     @Transactional
+    @SuppressWarnings("null")
     public Notification mark(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));

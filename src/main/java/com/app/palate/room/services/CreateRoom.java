@@ -3,7 +3,7 @@ package com.app.palate.room.services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.palate.auth.AuthService;
+import com.app.palate.auth.services.GetAccountById;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.room.Room;
 import com.app.palate.room.RoomRepository;
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CreateRoom {
     private final RoomRepository roomRepository;
-    private final AuthService authService;
+    private final GetAccountById getAccountById;
     private final QrCodeService qrCodeService;
 
     @Transactional
@@ -38,7 +38,7 @@ public class CreateRoom {
         }
 
         if (request.getCashierId() != null) {
-            room.setCashier(authService.getAccountById(request.getCashierId()));
+            room.setCashier(getAccountById.execute(request.getCashierId()));
         }
 
         return roomRepository.save(room);

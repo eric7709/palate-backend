@@ -16,6 +16,7 @@ public class DeleteCustomer {
     private final CustomerRepository customerRepository;
 
     @Transactional
+    @SuppressWarnings("null")
     public void delete(Long id) {
         ValidationUtils.requireNonNull(id, "Customer ID");
 

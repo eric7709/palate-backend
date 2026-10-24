@@ -31,6 +31,7 @@ public class SearchRestaurantTables {
     private final RestaurantTableRepository restaurantTableRepository;
 
     @Transactional(readOnly = true)
+    @SuppressWarnings("null")
     public Page<RestaurantTable> search(RestaurantTableSearchCriteria criteria) {
         Sort sort = criteria.getSortDirection().equalsIgnoreCase("desc")
                 ? Sort.by(criteria.getSortBy()).descending()

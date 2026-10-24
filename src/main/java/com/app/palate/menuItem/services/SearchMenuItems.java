@@ -31,6 +31,7 @@ public class SearchMenuItems {
     private final MenuItemRepository menuItemRepository;
 
     @Transactional(readOnly = true)
+    @SuppressWarnings("null")
     public Page<MenuItem> search(MenuItemSearchCriteria criteria) {
         String sortByField = (criteria.getSortBy() != null && !criteria.getSortBy().isEmpty())
                 ? criteria.getSortBy() : "createdAt";

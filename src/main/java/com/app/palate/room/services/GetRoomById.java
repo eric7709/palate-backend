@@ -16,6 +16,7 @@ public class GetRoomById {
     private final RoomRepository roomRepository;
 
     @Transactional(readOnly = true)
+    @SuppressWarnings("null")
     public Room get(Long id) {
         ValidationUtils.requireNonNull(id, "Room ID");
 

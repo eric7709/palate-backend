@@ -2,9 +2,9 @@ package com.app.palate.seed;
 
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
-import com.app.palate.auth.AccountStatus;
-import com.app.palate.auth.Gender;
-import com.app.palate.auth.Role;
+import com.app.palate.auth.enums.AccountStatus;
+import com.app.palate.auth.enums.Gender;
+import com.app.palate.auth.enums.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

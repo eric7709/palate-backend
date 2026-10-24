@@ -23,6 +23,7 @@ public class CreateCategoriesBulk {
     private final CategoryRepository categoryRepository;
 
     @Transactional
+    @SuppressWarnings("null")
     public List<Category> create(List<CategoryRequestDTO> requests) {
         ValidationUtils.requireNotEmpty(requests, "Request list");
 

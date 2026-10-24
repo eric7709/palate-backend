@@ -8,7 +8,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.palate.auth.AuthService;
+import com.app.palate.auth.services.GetAccountById;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class CreateRestaurantTablesBulk {
     private final RestaurantTableRepository restaurantTableRepository;
     private final AllocateStaff allocateStaff;
-    private final AuthService authService;
+    private final GetAccountById getAccountById;
     private final QrCodeService qrCodeService;
 
     @Transactional
@@ -78,11 +78,11 @@ public class CreateRestaurantTablesBulk {
 
             if (req.getWaiterId() != null) {
                 allocateStaff.allocate(savedTable.getId(), req.getWaiterId());
-                savedTable.setWaiter(authService.getAccountById(req.getWaiterId()));
+                savedTable.setWaiter(getAccountById.execute(req.getWaiterId()));
             }
             if (req.getCashierId() != null) {
                 allocateStaff.allocate(savedTable.getId(), req.getCashierId());
-                savedTable.setCashier(authService.getAccountById(req.getCashierId()));
+                savedTable.setCashier(getAccountById.execute(req.getCashierId()));
             }
         }
 

@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class GetCategoryById {
     private final CategoryRepository categoryRepository;
 
+    @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public Category get(Long id) {
         ValidationUtils.requireNonNull(id, "Category ID");

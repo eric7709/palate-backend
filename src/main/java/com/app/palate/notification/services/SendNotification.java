@@ -21,6 +21,7 @@ public class SendNotification {
     private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @SuppressWarnings("null")
     public void execute(Account account, String title, String type, String message) {
         Notification notification = new Notification();
         notification.setTitle(title);

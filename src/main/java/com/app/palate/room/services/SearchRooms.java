@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class SearchRooms {
     private final RoomRepository roomRepository;
 
+    @SuppressWarnings("null")
     @Transactional(readOnly = true)
     public Page<Room> search(RoomSearchCriteria criteria) {
         Sort sort = criteria.getSortDirection().equalsIgnoreCase("desc")

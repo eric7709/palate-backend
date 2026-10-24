@@ -10,11 +10,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
+
+    @SuppressWarnings("null")
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/api/palate/ws") // WebSocket endpoint
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
+
+    @SuppressWarnings("null")
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic"); // Clients subscribe here

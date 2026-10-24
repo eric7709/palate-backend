@@ -6,13 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.app.palate.dashboard.hourlyRevenue.dto.HourlyRevenueData;
 import com.app.palate.order.Order;
 import com.app.palate.order.enums.OrderStatus;
 
 public interface HourlyRevenueRepository extends JpaRepository<Order, Long> {
 
     @Query("""
-            SELECT new com.app.palate.dashboard.hourlyRevenue.HourlyRevenueData(
+            SELECT new com.app.palate.dashboard.hourlyRevenue.dto.HourlyRevenueData(
                 CASE WHEN o.createdAt >= :currentStart THEN 'CURRENT' ELSE 'PREVIOUS' END,
                 o.createdAt,
                 o.total
