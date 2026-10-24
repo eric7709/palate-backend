@@ -135,7 +135,6 @@ public class SecurityConfig {
                             res.getWriter().write("{\"error\":\"Unauthorized\"}");
                         }))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
