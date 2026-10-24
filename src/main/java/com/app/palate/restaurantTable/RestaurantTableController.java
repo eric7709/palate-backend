@@ -4,60 +4,67 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import com.app.palate.restaurantTable.dto.RestaurantTableRequestDTO;
+import com.app.palate.restaurantTable.dto.RestaurantTableResponseDTO;
+import com.app.palate.restaurantTable.dto.RestaurantTableSearchCriteria;
+import com.app.palate.restaurantTable.services.CreateRestaurantTable;
+import com.app.palate.restaurantTable.services.CreateRestaurantTablesBulk;
+import com.app.palate.restaurantTable.services.DeleteRestaurantTable;
+import com.app.palate.restaurantTable.services.GetRestaurantTableById;
+import com.app.palate.restaurantTable.services.GetRestaurantTableByQrCode;
+import com.app.palate.restaurantTable.services.GetRestaurantTablesByAccount;
+import com.app.palate.restaurantTable.services.SearchRestaurantTables;
+import com.app.palate.restaurantTable.services.UpdateRestaurantTable;
+import com.app.palate.restaurantTable.utils.RestaurantTableResponseMapper;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/palate/tables")
 @RequiredArgsConstructor
 public class RestaurantTableController {
-
-    private final RestaurantTableService restaurantTableService;
-    // 1. Inject the MapStruct mapper instance
+    private final CreateRestaurantTable createRestaurantTable;
+    private final CreateRestaurantTablesBulk createRestaurantTablesBulk;
+    private final UpdateRestaurantTable updateRestaurantTable;
+    private final SearchRestaurantTables searchRestaurantTables;
+    private final GetRestaurantTableById getRestaurantTableById;
+    private final GetRestaurantTableByQrCode getRestaurantTableByQrCode;
+    private final GetRestaurantTablesByAccount getRestaurantTablesByAccount;
+    private final DeleteRestaurantTable deleteRestaurantTable;
     private final RestaurantTableResponseMapper tableResponseMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RestaurantTableResponseDTO createTable(@RequestBody RestaurantTableRequestDTO request) {
-        RestaurantTable table = restaurantTableService.createTable(request);
-        return tableResponseMapper.mapToResponse(table);
+    public RestaurantTableResponseDTO create(@RequestBody RestaurantTableRequestDTO request) {
+        return tableResponseMapper.mapToResponse(createRestaurantTable.create(request));
     }
 
     @PostMapping("/bulk")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<RestaurantTable> createTablesBulk(@RequestBody List<RestaurantTableRequestDTO> requests) {
-        return restaurantTableService.createTablesBulk(requests);
+    public List<RestaurantTable> createBulk(@RequestBody List<RestaurantTableRequestDTO> requests) {
+        return createRestaurantTablesBulk.create(requests);
     }
 
     @GetMapping("/qrcode/{token}")
     @ResponseStatus(HttpStatus.OK)
-    public RestaurantTableResponseDTO getTableByQrCode(@PathVariable String token) {
-        RestaurantTable table = restaurantTableService.getTableByQrCode(token);
-        return tableResponseMapper.mapToResponse(table);
+    public RestaurantTableResponseDTO getByQrCode(@PathVariable String token) {
+        return tableResponseMapper.mapToResponse(getRestaurantTableByQrCode.get(token));
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<RestaurantTableResponseDTO> getAllTables(RestaurantTableSearchCriteria criteria) {
-        return restaurantTableService.getAllTables(criteria)
-                .map(tableResponseMapper::mapToResponse);
+    public Page<RestaurantTableResponseDTO> search(RestaurantTableSearchCriteria criteria) {
+        return searchRestaurantTables.search(criteria).map(tableResponseMapper::mapToResponse);
     }
 
     @GetMapping("/by-account")
     @ResponseStatus(HttpStatus.OK)
-    public List<RestaurantTableResponseDTO> getTablesByAccount(
+    public List<RestaurantTableResponseDTO> getByAccount(
             @RequestParam(required = false) Long waiterId,
             @RequestParam(required = false) Long cashierId) {
-        return restaurantTableService.getTablesByAccount(waiterId, cashierId)
+        return getRestaurantTablesByAccount.get(waiterId, cashierId)
                 .stream()
                 .map(tableResponseMapper::mapToResponse)
                 .toList();
@@ -65,22 +72,20 @@ public class RestaurantTableController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RestaurantTableResponseDTO getTableById(@PathVariable Long id) {
-        RestaurantTable table = restaurantTableService.getTableById(id);
-        return tableResponseMapper.mapToResponse(table);
+    public RestaurantTableResponseDTO get(@PathVariable Long id) {
+        return tableResponseMapper.mapToResponse(getRestaurantTableById.get(id));
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RestaurantTableResponseDTO updateTable(@PathVariable Long id,
+    public RestaurantTableResponseDTO update(@PathVariable Long id,
             @RequestBody RestaurantTableRequestDTO request) {
-        RestaurantTable table = restaurantTableService.updateTable(id, request);
-        return tableResponseMapper.mapToResponse(table);
+        return tableResponseMapper.mapToResponse(updateRestaurantTable.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTable(@PathVariable Long id) {
-        restaurantTableService.deleteTable(id);
+    public void delete(@PathVariable Long id) {
+        deleteRestaurantTable.delete(id);
     }
 }

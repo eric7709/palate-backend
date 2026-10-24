@@ -1,5 +1,8 @@
 package com.app.palate.category;
 
+import com.app.palate.category.dto.CategoryResponseDTO;
+import com.app.palate.category.dto.TopCategoryDTO;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,7 +21,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long>, JpaSp
 
     // Existing method
     @Query("""
-                SELECT new com.app.palate.category.CategoryResponseDTO(
+                SELECT new com.app.palate.category.dto.CategoryResponseDTO(
                     c.id,
                     c.name,
                     c.description,
@@ -40,7 +43,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long>, JpaSp
 
     // Top categories by sales (revenue) within date range
     @Query("""
-                SELECT new com.app.palate.category.TopCategoryDTO(
+                SELECT new com.app.palate.category.dto.TopCategoryDTO(
                     c.id,
                     c.name,
                     SUM(oi.price * oi.quantity)

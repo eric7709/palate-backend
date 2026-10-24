@@ -1,5 +1,8 @@
 package com.app.palate.menuItem;
 
+import com.app.palate.menuItem.dto.TopMenuItemDTO;
+import com.app.palate.menuItem.enums.MenuItemStatus;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +19,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long>, JpaSp
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 
     @Query("""
-                SELECT new com.app.palate.menuItem.TopMenuItemDTO(
+                SELECT new com.app.palate.menuItem.dto.TopMenuItemDTO(
                     oi.menuItem.id,
                     oi.menuItem.name,
                     SUM(oi.price * oi.quantity)

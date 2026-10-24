@@ -6,113 +6,91 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import com.app.palate.room.dto.RoomRequestDTO;
+import com.app.palate.room.dto.RoomResponseDTO;
+import com.app.palate.room.dto.RoomSearchCriteria;
+import com.app.palate.room.services.AllocateCashier;
+import com.app.palate.room.services.CreateRoom;
+import com.app.palate.room.services.CreateRoomsBulk;
+import com.app.palate.room.services.DeallocateCashier;
+import com.app.palate.room.services.DeleteRoom;
+import com.app.palate.room.services.GetRoomById;
+import com.app.palate.room.services.GetRoomByQrCode;
+import com.app.palate.room.services.SearchRooms;
+import com.app.palate.room.services.UpdateRoom;
+import com.app.palate.room.utils.RoomMapper;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/palate/rooms")
 @RequiredArgsConstructor
 public class RoomController {
+    private final CreateRoom createRoom;
+    private final CreateRoomsBulk createRoomsBulk;
+    private final UpdateRoom updateRoom;
+    private final SearchRooms searchRooms;
+    private final GetRoomById getRoomById;
+    private final GetRoomByQrCode getRoomByQrCode;
+    private final AllocateCashier allocateCashier;
+    private final DeallocateCashier deallocateCashier;
+    private final DeleteRoom deleteRoom;
+    private final RoomMapper roomMapper;
 
-        private final RoomService roomService;
-        private final RoomMapper roomMapper;
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public RoomResponseDTO create(@RequestBody RoomRequestDTO request) {
+        return roomMapper.toDTO(createRoom.create(request));
+    }
 
-        // =========================
-        // Create Room
-        // =========================
-        @PostMapping
-        @ResponseStatus(HttpStatus.CREATED)
-        public RoomResponseDTO createRoom(
-                        @RequestBody RoomRequestDTO request) {
+    @PostMapping("/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<RoomResponseDTO> createBulk(@RequestBody List<RoomRequestDTO> requests) {
+        return createRoomsBulk.create(requests)
+                .stream()
+                .map(roomMapper::toDTO)
+                .toList();
+    }
 
-                return roomMapper.toDTO(
-                                roomService.createRoom(request));
-        }
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public RoomResponseDTO get(@PathVariable Long id) {
+        return roomMapper.toDTO(getRoomById.get(id));
+    }
 
-        // =========================
-        // Bulk Create Rooms
-        // =========================
-        @PostMapping("/bulk")
-        @ResponseStatus(HttpStatus.CREATED)
-        public List<RoomResponseDTO> createRoomsBulk(
-                        @RequestBody List<RoomRequestDTO> requests) {
+    @GetMapping("/qrcode/{token}")
+    @ResponseStatus(HttpStatus.OK)
+    public RoomResponseDTO getByQrCode(@PathVariable String token) {
+        return roomMapper.toDTO(getRoomByQrCode.get(token));
+    }
 
-                return roomService.createRoomsBulk(requests)
-                                .stream()
-                                .map(roomMapper::toDTO)
-                                .toList();
-        }
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public Page<RoomResponseDTO> search(RoomSearchCriteria criteria) {
+        return searchRooms.search(criteria).map(roomMapper::toDTO);
+    }
 
-        // =========================
-        // Get Room By Id
-        // =========================
-        @GetMapping("/{id}")
-        @ResponseStatus(HttpStatus.OK)
-        public RoomResponseDTO getRoomById(
-                        @PathVariable Long id) {
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public RoomResponseDTO update(@PathVariable Long id, @RequestBody RoomRequestDTO request) {
+        return roomMapper.toDTO(updateRoom.update(id, request));
+    }
 
-                return roomMapper.toDTO(
-                                roomService.getRoomById(id));
-        }
+    @PostMapping("/{id}/cashier/{cashierId}")
+    @ResponseStatus(HttpStatus.OK)
+    public RoomResponseDTO allocate(@PathVariable Long id, @PathVariable Long cashierId) {
+        return roomMapper.toDTO(allocateCashier.allocate(id, cashierId));
+    }
 
-        @GetMapping("/qrcode/{token}")
-        @ResponseStatus(HttpStatus.OK)
-        public RoomResponseDTO getRoomByQrCode(@PathVariable String token) {
-                return roomMapper.toDTO(roomService.getRoomByQrCode(token));
-        }
+    @DeleteMapping("/{id}/cashier")
+    @ResponseStatus(HttpStatus.OK)
+    public RoomResponseDTO deallocate(@PathVariable Long id) {
+        return roomMapper.toDTO(deallocateCashier.deallocate(id));
+    }
 
-        // =========================
-        // Get All Rooms
-        // =========================
-        @GetMapping
-        @ResponseStatus(HttpStatus.OK)
-        public Page<RoomResponseDTO> getAllRooms(RoomSearchCriteria criteria) {
-                return roomService.getAllRooms(criteria)
-                                .map(roomMapper::toDTO);
-        }
-
-        // =========================
-        // Update Room
-        // =========================
-        @PutMapping("/{id}")
-        @ResponseStatus(HttpStatus.OK)
-        public RoomResponseDTO updateRoom(
-                        @PathVariable Long id,
-                        @RequestBody RoomRequestDTO request) {
-
-                return roomMapper.toDTO(
-                                roomService.updateRoom(id, request));
-        }
-
-        @PostMapping("/{id}/cashier/{cashierId}")
-        @ResponseStatus(HttpStatus.OK)
-        public RoomResponseDTO allocateCashier(
-                        @PathVariable Long id,
-                        @PathVariable Long cashierId) {
-
-                return roomMapper.toDTO(
-                                roomService.allocateCashier(id, cashierId));
-        }
-
-        // =========================
-        // Deallocate Cashier
-        // =========================
-        @DeleteMapping("/{id}/cashier")
-        @ResponseStatus(HttpStatus.OK)
-        public RoomResponseDTO deallocateCashier(
-                        @PathVariable Long id) {
-
-                return roomMapper.toDTO(
-                                roomService.deallocateCashier(id));
-        }
-
-        // =========================
-        // Delete Room
-        // =========================
-        @DeleteMapping("/{id}")
-        @ResponseStatus(HttpStatus.NO_CONTENT)
-        public void deleteRoom(
-                        @PathVariable Long id) {
-
-                roomService.deleteRoom(id);
-        }
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        deleteRoom.delete(id);
+    }
 }

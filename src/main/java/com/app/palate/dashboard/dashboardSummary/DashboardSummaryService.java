@@ -1,7 +1,7 @@
 package com.app.palate.dashboard.dashboardSummary;
 
 import com.app.palate.menuItem.MenuItemRepository;
-import com.app.palate.menuItem.MenuItemStatus;
+import com.app.palate.menuItem.enums.MenuItemStatus;
 import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
 import com.app.palate.room.RoomRepository;

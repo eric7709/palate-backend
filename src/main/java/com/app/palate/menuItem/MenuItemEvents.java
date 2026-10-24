@@ -1,5 +1,7 @@
 package com.app.palate.menuItem;
 
+import com.app.palate.menuItem.dto.MenuItemResponseDTO;
+
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 

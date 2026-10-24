@@ -5,10 +5,10 @@ import com.app.palate.auth.AccountRepository;
 import com.app.palate.auth.Role;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.restaurantTable.RestaurantTableRepository;
-import com.app.palate.restaurantTable.RestaurantTableStatus;
+import com.app.palate.restaurantTable.enums.RestaurantTableStatus;
 import com.app.palate.room.Room;
 import com.app.palate.room.RoomRepository;
-import com.app.palate.room.RoomStatus;
+import com.app.palate.room.enums.RoomStatus;
 import com.app.palate.service.QrCodeService;
 
 import lombok.RequiredArgsConstructor;

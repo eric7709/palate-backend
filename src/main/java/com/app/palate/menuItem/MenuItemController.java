@@ -4,15 +4,20 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import com.app.palate.menuItem.dto.MenuItemRequestDTO;
+import com.app.palate.menuItem.dto.MenuItemResponseDTO;
+import com.app.palate.menuItem.dto.MenuItemSearchCriteria;
+import com.app.palate.menuItem.services.CreateMenuItem;
+import com.app.palate.menuItem.services.CreateMenuItemsBulk;
+import com.app.palate.menuItem.services.DeleteMenuItem;
+import com.app.palate.menuItem.services.GetAvailableMenuItems;
+import com.app.palate.menuItem.services.GetMenuItemById;
+import com.app.palate.menuItem.services.GetUnavailableMenuItems;
+import com.app.palate.menuItem.services.SearchMenuItems;
+import com.app.palate.menuItem.services.UpdateMenuItem;
+import com.app.palate.menuItem.utils.MenuItemMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,18 +25,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/palate/menu-items")
 public class MenuItemController {
-
-    private final MenuItemService menuItemService;
+    private final CreateMenuItem createMenuItem;
+    private final CreateMenuItemsBulk createMenuItemsBulk;
+    private final UpdateMenuItem updateMenuItem;
+    private final SearchMenuItems searchMenuItems;
+    private final GetMenuItemById getMenuItemById;
+    private final GetUnavailableMenuItems getUnavailableMenuItems;
+    private final GetAvailableMenuItems getAvailableMenuItems;
+    private final DeleteMenuItem deleteMenuItem;
     private final MenuItemEvents menuItemEvents;
-    // 1. Inject the new non-static MapStruct Mapper here
     private final MenuItemMapper menuItemMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public MenuItemResponseDTO createMenuItem(@RequestBody MenuItemRequestDTO request) {
-        MenuItem menuItem = menuItemService.createMenuItem(request);
-        // 2. Use the injected bean instance instead of static calls
-        MenuItemResponseDTO response = menuItemMapper.toResponse(menuItem);
+    public MenuItemResponseDTO create(@RequestBody MenuItemRequestDTO request) {
+        MenuItemResponseDTO response = menuItemMapper.toResponse(createMenuItem.create(request));
 
         menuItemEvents.broadcastCreated(response);
         return response;
@@ -39,51 +47,47 @@ public class MenuItemController {
 
     @PostMapping("/bulk")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<MenuItem> createMenuItemsBulk(@RequestBody List<MenuItemRequestDTO> requests) {
-        return menuItemService.createMenuItemsBulk(requests);
+    public List<MenuItem> createBulk(@RequestBody List<MenuItemRequestDTO> requests) {
+        return createMenuItemsBulk.create(requests);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<MenuItemResponseDTO> getAllMenuItems(MenuItemSearchCriteria criteria) {
-        Page<MenuItem> menuItemsPage = menuItemService.getAllMenuItems(criteria);
-        return menuItemsPage.map(menuItemMapper::toResponse);
+    public Page<MenuItemResponseDTO> search(MenuItemSearchCriteria criteria) {
+        return searchMenuItems.search(criteria).map(menuItemMapper::toResponse);
     }
 
     @PostMapping("/unavailable")
     @ResponseStatus(HttpStatus.OK)
-    public List<Long> getUnavailbleMenuItems(@RequestBody List<Long> request) {
-        return menuItemService.getUnavailableMenuItems(request);
+    public List<Long> getUnavailable(@RequestBody List<Long> menuItemIds) {
+        return getUnavailableMenuItems.get(menuItemIds);
     }
 
     @GetMapping("/available")
     @ResponseStatus(HttpStatus.OK)
-    public List<Long> getAvailbleMenuItems(@RequestBody List<Long> request) {
-        return menuItemService.getAvailableMenuItems(request);
+    public List<Long> getAvailable(@RequestBody List<Long> menuItemIds) {
+        return getAvailableMenuItems.get(menuItemIds);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public MenuItemResponseDTO updateMenuItem(@PathVariable Long id, @RequestBody MenuItemRequestDTO request) {
-        MenuItem menuItem = menuItemService.updateMenuItem(id, request);
-        // 4. Update to instance call
-        MenuItemResponseDTO response = menuItemMapper.toResponse(menuItem);
+    public MenuItemResponseDTO update(@PathVariable Long id, @RequestBody MenuItemRequestDTO request) {
+        MenuItemResponseDTO response = menuItemMapper.toResponse(updateMenuItem.update(id, request));
+
         menuItemEvents.broadcastUpdated(response);
         return response;
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public MenuItemResponseDTO getMenuItemById(@PathVariable Long id) {
-        MenuItem menuItem = menuItemService.getMenuItemById(id);
-        // 5. Update to instance call
-        return menuItemMapper.toResponse(menuItem);
+    public MenuItemResponseDTO get(@PathVariable Long id) {
+        return menuItemMapper.toResponse(getMenuItemById.get(id));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteMenuItem(@PathVariable Long id) {
-        menuItemService.deleteMenuItem(id);
+    public void delete(@PathVariable Long id) {
+        deleteMenuItem.delete(id);
         menuItemEvents.broadcastDeleted(id);
     }
 }

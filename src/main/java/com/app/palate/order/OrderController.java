@@ -17,7 +17,6 @@ import com.app.palate.order.dto.OrderSearchCriteria;
 import com.app.palate.order.dto.OrderResponseDTO;
 import com.app.palate.order.dto.OrderSummaryResponse;
 import com.app.palate.order.dto.UpdateOrderStatusDTO;
-import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.order.helpers.OrderEvents;
 import com.app.palate.order.services.CreateOrder;
 
@@ -51,6 +50,7 @@ public class OrderController {
         private final GetAllCustomerOrders getAllCustomerOrders;
         private final GetPreparingOrders getPreparingOrders;
 
+        @SuppressWarnings("null")
         @PostMapping
         @ResponseStatus(HttpStatus.CREATED)
         public Order createOrder(@RequestBody OrderRequestDTO request) {
@@ -77,8 +77,7 @@ public class OrderController {
         public OrderResponseDTO updateOrderStatus(
                         @PathVariable Long id,
                         @RequestBody UpdateOrderStatusDTO request) {
-
-                Order order = updateOrder.update(id, request);
+                Order order = updateOrder.execute(id, request);
                 return OrderResponseDTO.mapToResponse(order);
         }
 

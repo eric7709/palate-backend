@@ -19,7 +19,7 @@ public class UpdateOrder {
     private final OrderRepository orderRepository;
     private final OrderEvents orderEvents;
 
-    public Order update(Long id, UpdateOrderStatusDTO request) {
+    public Order execute(Long id, UpdateOrderStatusDTO request) {
 
         ValidationUtils.requireNonNull(id, "Order ID");
         ValidationUtils.requireNonNull(request, "Request body");

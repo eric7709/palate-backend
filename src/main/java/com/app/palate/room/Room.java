@@ -4,14 +4,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import com.app.palate.auth.Account;
+import com.app.palate.room.enums.RoomStatus;
 import com.app.palate.utils.BaseEntity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-
 
 @Entity
 @Table(name = "rooms")

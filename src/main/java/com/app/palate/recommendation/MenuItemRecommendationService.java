@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.palate.menuItem.MenuItem;
 import com.app.palate.menuItem.MenuItemRepository;
-import com.app.palate.menuItem.MenuItemStatus;
+import com.app.palate.menuItem.enums.MenuItemStatus;
 import com.app.palate.order.Order;
 import com.app.palate.order.OrderRepository;
 import com.app.palate.orderItem.OrderItem;

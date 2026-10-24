@@ -3,7 +3,7 @@ package com.app.palate.order.helpers;
 import com.app.palate.auth.Account;
 import com.app.palate.auth.AccountRepository;
 import com.app.palate.auth.Role;
-import com.app.palate.notification.NotificationService;
+import com.app.palate.notification.services.SendNotification;
 import com.app.palate.order.Order;
 import com.app.palate.order.OrderRepository;
 
@@ -22,7 +22,7 @@ import java.util.List;
 public class OrderTimeoutScheduler {
 
     private final OrderRepository orderRepository;
-    private final NotificationService notificationService;
+    private final SendNotification sendNotification;
     private final AccountRepository accountRepository;
 
     @Scheduled(fixedRate = 60000)
@@ -43,7 +43,7 @@ public class OrderTimeoutScheduler {
             String message = "Order " + order.getInvoiceNumber() + " has been pending for over 10 minutes.";
 
             for (Account admin : admins) {
-                notificationService.sendToAccount(admin, title, type, message);
+                sendNotification.execute(admin, title, type, message);
             }
 
             log.warn("  -> Notified {} admin(s) for order #{} | Invoice: {}",

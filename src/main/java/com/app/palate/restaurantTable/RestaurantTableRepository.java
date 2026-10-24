@@ -1,5 +1,7 @@
 package com.app.palate.restaurantTable;
 
+import com.app.palate.restaurantTable.dto.RestaurantTopTableDTO;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +20,7 @@ public interface RestaurantTableRepository
     RestaurantTable findByTableNumber(Integer tableNumber);
 
     @Query("""
-                SELECT new com.app.palate.restaurantTable.RestaurantTopTableDTO(
+                SELECT new com.app.palate.restaurantTable.dto.RestaurantTopTableDTO(
                     o.table.id,
                     o.table.tableName,
                     CAST(o.table.tableNumber AS string),

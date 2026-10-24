@@ -4,7 +4,7 @@ import com.app.palate.category.Category;
 import com.app.palate.category.CategoryRepository;
 import com.app.palate.menuItem.MenuItem;
 import com.app.palate.menuItem.MenuItemRepository;
-import com.app.palate.menuItem.MenuItemStatus;
+import com.app.palate.menuItem.enums.MenuItemStatus;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

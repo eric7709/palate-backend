@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.app.palate.auth.Account;
+import com.app.palate.restaurantTable.enums.RestaurantTableStatus;
 import com.app.palate.tableAllocation.TableAllocation;
 import com.app.palate.utils.BaseEntity;
 import jakarta.persistence.*;

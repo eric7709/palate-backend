@@ -12,7 +12,7 @@ import com.app.palate.customer.Customer;
 import com.app.palate.customer.CustomerRepository;
 import com.app.palate.exceptions.BadRequestException;
 import com.app.palate.menuItem.MenuItem;
-import com.app.palate.menuItem.MenuItemStatus;
+import com.app.palate.menuItem.enums.MenuItemStatus;
 import com.app.palate.order.Order;
 import com.app.palate.order.OrderRepository;
 import com.app.palate.order.dto.OrderRequestDTO;
@@ -21,8 +21,8 @@ import com.app.palate.order.enums.OrderStatus;
 import com.app.palate.order.helpers.OrderEvents;
 import com.app.palate.orderItem.OrderItem;
 import com.app.palate.orderItem.OrderItemDTO;
-import com.app.palate.payment.MonnifyInvoiceResponse;
-import com.app.palate.payment.MonnifyService;
+import com.app.palate.payment.dto.MonnifyInvoiceResponse;
+import com.app.palate.payment.services.CreateMonnifyInvoice;
 import com.app.palate.restaurantTable.RestaurantTable;
 import com.app.palate.room.Room;
 import com.app.palate.utils.EntityResolver;
@@ -38,7 +38,7 @@ public class CreateOrder {
         private final EntityResolver entityResolver;
         private final OrderRepository orderRepository;
         private final CustomerRepository customerRepository;
-        private final MonnifyService monnifyService;
+        private final CreateMonnifyInvoice createMonnifyInvoice;
 
         // Validate Request
         // Validate Table, Cashier and Room
@@ -82,7 +82,7 @@ public class CreateOrder {
                                         + " "
                                         + customer.getName();
 
-                        MonnifyInvoiceResponse invoice = monnifyService.createOrderInvoice(
+                        MonnifyInvoiceResponse invoice = createMonnifyInvoice.execute(
                                         savedOrder.getId(),
                                         savedOrder.getTotal(),
                                         customerName);
@@ -198,7 +198,6 @@ public class CreateOrder {
 
                 boolean hasRoom = request.getRoomId() != null;
 
-
                 if (!hasTable && !hasRoom) {
                         throw new BadRequestException(
                                         "Order must belong to either a table or a room");
@@ -235,10 +234,12 @@ public class CreateOrder {
                         OrderRequestDTO request,
                         CustomerRepository customerRepository) {
 
-                if (request.getCustomerId() != null) {
+                Long customerId = request.getCustomerId();
+
+                if (customerId != null) {
 
                         Customer existing = customerRepository
-                                        .findById(request.getCustomerId())
+                                        .findById(customerId)
                                         .orElse(null);
 
                         if (existing != null) {
@@ -267,7 +268,6 @@ public class CreateOrder {
                         }
                 }
 
-                
                 if (request.getCustomerName() == null
                                 || request.getCustomerName().isBlank()
                                 || request.getCustomerTitle() == null

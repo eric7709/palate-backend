@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.palate.menuItem.MenuItem;
-import com.app.palate.menuItem.MenuItemMapper;
-import com.app.palate.menuItem.MenuItemResponseDTO;
+import com.app.palate.menuItem.dto.MenuItemResponseDTO;
+import com.app.palate.menuItem.utils.MenuItemMapper;
 
 import lombok.RequiredArgsConstructor;
 

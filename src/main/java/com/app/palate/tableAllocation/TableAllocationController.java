@@ -1,44 +1,54 @@
 package com.app.palate.tableAllocation;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import com.app.palate.tableAllocation.dto.TableAllocationResponseDTO;
+import com.app.palate.tableAllocation.dto.TableAllocationSearchCriteria;
+import com.app.palate.tableAllocation.services.AllocateStaff;
+import com.app.palate.tableAllocation.services.DeallocateStaff;
+import com.app.palate.tableAllocation.services.GetTableAllocationById;
+import com.app.palate.tableAllocation.services.SearchTableAllocations;
+import com.app.palate.tableAllocation.utils.TableAllocationMapper;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/palate/table-allocations")
 @RequiredArgsConstructor
 public class TableAllocationController {
-
-    private final TableAllocationService allocationService;
+    private final AllocateStaff allocateStaff;
+    private final DeallocateStaff deallocateStaff;
+    private final SearchTableAllocations searchTableAllocations;
+    private final GetTableAllocationById getTableAllocationById;
     private final TableAllocationMapper mapper;
 
     @PostMapping("/allocate")
     @ResponseStatus(HttpStatus.CREATED)
-    public TableAllocationResponseDTO allocateStaff(
+    public TableAllocationResponseDTO allocate(
             @RequestParam Long tableId,
             @RequestParam Long staffId) {
-        return mapper.toDTO(allocationService.allocateStaff(tableId, staffId));
+        return mapper.toDTO(allocateStaff.allocate(tableId, staffId));
     }
 
     @PostMapping("/deallocate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deallocateStaff(
+    public void deallocate(
             @RequestParam Long tableId,
             @RequestParam Long staffId) {
-
-        allocationService.deallocateStaff(tableId, staffId);
+        deallocateStaff.deallocate(tableId, staffId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<TableAllocationResponseDTO> getAllAllocations(TableAllocationSearchCriteria criteria) {
-        return allocationService.getAllAllocations(criteria).map(mapper::toDTO);
+    public Page<TableAllocationResponseDTO> search(TableAllocationSearchCriteria criteria) {
+        return searchTableAllocations.search(criteria).map(mapper::toDTO);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TableAllocationResponseDTO getAllocationById(@PathVariable Long id) {
-        return mapper.toDTO(allocationService.getAllocationById(id));
+    public TableAllocationResponseDTO get(@PathVariable Long id) {
+        return mapper.toDTO(getTableAllocationById.get(id));
     }
 }
